@@ -1,0 +1,212 @@
+# iOS Health Dump
+
+Backend service and web dashboard for receiving, storing, and visualizing daily health metrics (steps, calories, distance) from iOS via Shortcuts.
+
+## Tech Stack
+
+- Python 3.12 / Flask backend
+- SQLite for health data storage
+- Modern web frontend (HTML5, CSS3, vanilla JavaScript)
+- Chart.js for time series visualization
+- Cloudflared for secure tunneling
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph iOS
+        Shortcut[iOS Shortcut]
+    end
+    subgraph Browser
+        Dashboard[Web Dashboard]
+    end
+    subgraph Storage
+        DB[(health_dumps.db)]
+    end
+    subgraph App
+        Flask[Flask Server :5009]
+    end
+    subgraph Scheduler
+        Git[Git Commit Scheduler]
+    end
+    
+    Shortcut -->|POST /dump| Flask
+    Dashboard -->|GET /api/health-data| Flask
+    Dashboard -->|GET /| Flask
+    Flask --> DB
+    Git -->|hourly commits| DB
+```
+
+## Prerequisites
+
+- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) for dependency management
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/momonala/ios-health.git
+cd ios-health
+```
+
+2. Install dependencies:
+```bash
+uv sync
+```
+
+## Running
+
+```bash
+uv run python app.py
+```
+
+Server runs at http://localhost:5009
+
+Open http://localhost:5009 in your browser to view the dashboard.
+
+### Git Commit Scheduler
+
+Run the scheduler to auto-commit database changes hourly:
+```bash
+uv run python git_commit_scheduler.py
+```
+
+## Project Structure
+
+```
+ios-health/
+├── app.py                    # Flask application & routes
+├── datamodels.py             # HealthDump dataclass
+├── db.py                     # SQLite connection utilities
+├── ios_health_dump.py        # Health dump upsert logic
+├── git_commit_scheduler.py   # Auto-commits DB changes hourly
+├── health_dumps.db           # SQLite database (generated)
+├── pyproject.toml            # Dependencies & tool config
+│
+├── templates/
+│   └── index.html            # Dashboard HTML template
+│
+├── static/
+│   ├── css/
+│   │   └── styles.css        # Dashboard styles (iOS Health inspired)
+│   └── js/
+│       └── dashboard.js      # Dashboard logic & Chart.js integration
+│
+└── install/
+    ├── install.sh                              # Setup script for Raspberry Pi
+    ├── projects_ios-health-dump.service        # Systemd service for Flask
+    └── projects_ios-health-dump_scheduler.service  # Systemd service for scheduler
+```
+
+## API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Web dashboard (HTML) |
+| `/status` | GET | Health check |
+| `/api/health-data` | GET | Get all health data (JSON) |
+| `/dump` | POST | Save health data from iOS |
+
+### GET /api/health-data
+
+Returns all health data sorted by date (most recent first).
+
+Response:
+```json
+{
+  "data": [
+    {
+      "date": "2026-01-03",
+      "steps": 10000,
+      "kcals": 500.5,
+      "km": 8.2,
+      "recorded_at": "2026-01-03T14:30:00+01:00"
+    }
+  ]
+}
+```
+
+### POST /dump
+
+```bash
+curl -X POST http://localhost:5009/dump \
+  -H "Content-Type: application/json" \
+  -d '{"steps": 10000, "kcals": 500.5, "km": 8.2}'
+```
+
+Request body:
+```json
+{
+  "steps": "integer (required)",
+  "kcals": "float (required)",
+  "km": "float (required)"
+}
+```
+
+Response:
+```json
+{
+  "status": "success",
+  "data": {
+    "date": "2026-01-03",
+    "steps": 10000,
+    "kcals": 500.5,
+    "km": 8.2,
+    "recorded_at": "2026-01-03T14:30:00+01:00"
+  },
+  "row_count": 42
+}
+```
+
+## Dashboard Features
+
+The web dashboard provides an iOS Health App-inspired interface with:
+
+- **Today's Summary**: Large metric cards showing steps, calories, and distance with progress rings
+- **Statistics**: Average values and totals for week/month/year periods
+- **Time Series Charts**: Interactive line charts for all metrics using Chart.js
+- **Recent Activity**: Last 5 days of activity at a glance
+- **Responsive Design**: Works on mobile and desktop
+- **Dark Theme**: iOS-inspired dark color scheme
+
+## Key Concepts
+
+| Concept | Description |
+|---------|-------------|
+| **Upsert logic** | Only keeps the latest entry per day; older duplicates are skipped |
+| **Timezone** | All times normalized to Europe/Berlin |
+| **Auto-commit** | Scheduler commits DB changes to git hourly |
+| **Goals** | Default goals: 10,000 steps, 500 kcal, 8 km (configurable in frontend) |
+
+## Data Models
+
+```
+HealthDump
+├── date: str (YYYY-MM-DD, primary key)
+├── steps: int
+├── kcals: float
+├── km: float
+└── recorded_at: datetime (ISO timestamp)
+```
+
+## Storage
+
+| File | Purpose |
+|------|---------|
+| `health_dumps.db` | SQLite DB for daily health metrics |
+| `health_dumps.db.bk` | Backup created on each commit |
+
+## Deployment
+
+The `install/` folder contains scripts for deploying to a Raspberry Pi with systemd and Cloudflared:
+
+```bash
+cd install
+./install.sh
+```
+
+This will:
+1. Install uv and project dependencies
+2. Set up systemd services for Flask and the scheduler
+3. Configure Cloudflared tunnel for `ios-health-dump.mnalavadi.org`
