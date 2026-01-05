@@ -23,7 +23,7 @@
 
         <!-- Summary Section -->
         <section class="summary-section">
-            <h2 class="section-title">Summary</h2>
+            <h2 class="section-title">Today</h2>
             
             <div class="metrics-grid">
                 <!-- Steps Card -->
@@ -114,23 +114,35 @@
         <section class="stats-section">
             <div class="stats-header">
                 <h2 class="section-title">Statistics</h2>
-                <div class="period-selector">
-                    <button class="period-btn active" data-period="week">W</button>
-                    <button class="period-btn" data-period="month">M</button>
-                    <button class="period-btn" data-period="year">Y</button>
+                <div class="stats-controls">
+                    <div class="period-selector">
+                        <button class="period-btn" data-period="week">W</button>
+                        <button class="period-btn" data-period="month">M</button>
+                        <button class="period-btn" data-period="year">Y</button>
+                        <button class="period-btn active" data-period="all">All</button>
+                    </div>
+                    <div class="groupby-selector">
+                        <label class="groupby-label">Group by</label>
+                        <select id="groupBySelect" class="groupby-select">
+                            <option value="day">Day</option>
+                            <option value="week">Week</option>
+                            <option value="month" selected>Month</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="stats-cards">
-                <div class="stat-item">
-                    <span class="stat-label">Avg Steps</span>
-                    <span class="stat-value" id="avgSteps">--</span>
+            <!-- Totals Row -->
+            <div class="stats-cards stats-cards--totals">
+                <div class="stat-item stat-item--steps">
+                    <span class="stat-label">Total Steps</span>
+                    <span class="stat-value" id="totalSteps">--</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">Avg Calories</span>
-                    <span class="stat-value" id="avgKcals">--</span>
+                <div class="stat-item stat-item--calories">
+                    <span class="stat-label">Total Active Calories</span>
+                    <span class="stat-value" id="totalKcals">--</span>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item stat-item--distance">
                     <span class="stat-label">Total Distance</span>
                     <span class="stat-value" id="totalKm">--</span>
                 </div>
@@ -139,38 +151,71 @@
                     <span class="stat-value" id="daysTracked">--</span>
                 </div>
             </div>
+
+            <!-- Averages Row -->
+            <div class="stats-cards stats-cards--averages">
+                <div class="stat-item stat-item--steps">
+                    <span class="stat-label">Avg Steps</span>
+                    <span class="stat-value" id="avgSteps">--</span>
+                </div>
+                <div class="stat-item stat-item--calories">
+                    <span class="stat-label">Avg Active Calories</span>
+                    <span class="stat-value" id="avgKcals">--</span>
+                </div>
+                <div class="stat-item stat-item--distance">
+                    <span class="stat-label">Avg Distance</span>
+                    <span class="stat-value" id="avgKm">--</span>
+                </div>
+            </div>
         </section>
 
         <!-- Charts Section -->
         <section class="charts-section">
-            <article class="chart-card">
-                <h3 class="chart-title">Steps</h3>
-                <div class="chart-container">
-                    <canvas id="stepsChart"></canvas>
-                </div>
-            </article>
-
-            <article class="chart-card">
-                <h3 class="chart-title">Calories</h3>
-                <div class="chart-container">
-                    <canvas id="kcalsChart"></canvas>
-                </div>
-            </article>
-
-            <article class="chart-card">
-                <h3 class="chart-title">Distance</h3>
-                <div class="chart-container">
-                    <canvas id="kmChart"></canvas>
+            <article class="chart-card chart-card--combined">
+                <h3 class="chart-title">Health Metrics</h3>
+                <div class="chart-container chart-container--tall">
+                    <canvas id="combinedChart"></canvas>
                 </div>
             </article>
         </section>
 
         <!-- Recent Activity -->
         <section class="activity-section">
-            <h2 class="section-title">Recent Activity</h2>
-            <div class="activity-list" id="activityList">
-                <!-- Populated by JS -->
+            <div class="activity-header">
+                <h2 class="section-title">Recent Activity</h2>
+                <div class="date-jump-container">
+                    <label class="date-label" for="dateJump">Jump to</label>
+                    <input type="date" id="dateJump" class="date-input">
+                </div>
             </div>
+            <div class="activity-table-container" id="activityTableContainer">
+                <table class="activity-table" id="activityTable">
+                    <thead>
+                        <tr>
+                            <th class="activity-th activity-th--sortable" data-sort="date">
+                                Date
+                                <span class="sort-icon"></span>
+                            </th>
+                            <th class="activity-th activity-th--steps activity-th--sortable" data-sort="steps">
+                                Steps
+                                <span class="sort-icon"></span>
+                            </th>
+                            <th class="activity-th activity-th--calories activity-th--sortable" data-sort="kcals">
+                                Calories
+                                <span class="sort-icon"></span>
+                            </th>
+                            <th class="activity-th activity-th--distance activity-th--sortable" data-sort="km">
+                                Distance
+                                <span class="sort-icon"></span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityList">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="activity-results-info" id="activityResultsInfo"></div>
         </section>
 
         <!-- Footer -->
@@ -182,4 +227,5 @@
     <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
+
 

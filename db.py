@@ -1,7 +1,13 @@
 """Common database utilities."""
 
+import logging
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 DB_PATH = Path("health_dumps.db")
 TABLE_NAME = "health_dumps"
@@ -14,30 +20,52 @@ def get_db_connection():
     return conn
 
 
-def get_all_health_data() -> list[dict[str, any]]:
-    """Get all health data from the database, sorted by date (most recent first)."""
+@contextmanager
+def db_transaction():
+    """Context manager for database transactions.
+
+    Automatically commits on successful exit, rolls back on exception,
+    and closes the connection.
+
+    Yields:
+        tuple: (connection, cursor) for use within the context
+    """
     conn = get_db_connection()
     cursor = conn.cursor()
+    try:
+        yield conn, cursor
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def init_health_dumps_table() -> None:
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{TABLE_NAME}'")
+    if cursor.fetchone():
+        logger.info("✅ Health dumps table already exists")
+        return
 
     cursor.execute(
         f"""
-        SELECT date, steps, kcals, km, recorded_at 
-        FROM {TABLE_NAME} 
-        ORDER BY date DESC
+        CREATE TABLE {TABLE_NAME} (
+            date TEXT PRIMARY KEY,
+            steps INTEGER,
+            kcals REAL,
+            km REAL,
+            recorded_at TEXT NOT NULL
+        )
     """
     )
-    rows = cursor.fetchall()
-    conn.close()
+    connection.commit()
+    logger.info("✅ Health dumps table initialized")
 
-    data = [
-        {
-            "date": row["date"],
-            "steps": row["steps"],
-            "kcals": row["kcals"],
-            "km": row["km"],
-            "recorded_at": row["recorded_at"],
-        }
-        for row in rows
-    ]
+    connection.close()
 
-    return data
+
+init_health_dumps_table()

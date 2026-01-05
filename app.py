@@ -1,14 +1,14 @@
 import logging
 from datetime import datetime
 
-import pytz
 from flask import Flask
 from flask import jsonify
 from flask import render_template
 from flask import request
+from flask import send_from_directory
 
 from datamodels import HealthDump
-from db import get_all_health_data
+from ios_health_dump import get_all_health_data
 from ios_health_dump import upsert_health_dump
 
 app = Flask(__name__, static_url_path="/static", static_folder="static", template_folder="templates")
@@ -16,6 +16,12 @@ app = Flask(__name__, static_url_path="/static", static_folder="static", templat
 logging.basicConfig(level=logging.INFO)
 # logging.getLogger("werkzeug").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+@app.route("/favicon.ico")
+def favicon():
+    """Serve the favicon."""
+    return send_from_directory(app.static_folder, "favicon.ico", mimetype="image/vnd.microsoft.icon")
 
 
 @app.route("/", methods=["GET"])
@@ -34,6 +40,7 @@ def status():
 def get_health_data():
     """Get all health data for the dashboard."""
     data = get_all_health_data()
+    logger.info(f"🔍 Latest health record: {data[0]}")
     return jsonify({"data": data})
 
 
@@ -41,21 +48,18 @@ def get_health_data():
 def dump():
     """Save health dump from iOS app to database."""
     data = request.get_json()
-
-    berlin_tz = pytz.timezone("Europe/Berlin")
-    now = datetime.now(berlin_tz)
-    date_str = now.replace(hour=0, minute=0, second=0, microsecond=0).date().isoformat()
-
+    now = datetime.now()
     health_dump = HealthDump(
-        date=date_str,
+        date=now.date().isoformat(),
         steps=int(data["steps"]),
         kcals=float(data["kcals"]),
         km=float(data["km"]),
         recorded_at=now,
     )
-
     row_count = upsert_health_dump(health_dump)
-    logger.info(f"📲 Saved health dump for iOS app: {health_dump.date} - {data} (rows: {row_count:,})")
+    logger.info(f"📲 Saved health dump for iOS app: {health_dump} (rows: {row_count:,})")
+    data = get_all_health_data()
+    logger.info(f"🔍 Latest health record: {data[0]}")
     return jsonify({"status": "success", "data": health_dump.to_dict(), "row_count": row_count}), 200
 
 

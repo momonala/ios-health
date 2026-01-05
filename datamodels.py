@@ -4,10 +4,10 @@ from datetime import datetime
 
 @dataclass
 class HealthDump:
-    date: str  # ISO format date string (YYYY-MM-DD) as primary key
-    steps: int
-    kcals: float
-    km: float
+    date: str  # ISO format date string
+    steps: int | None
+    kcals: float | None
+    km: float | None
     recorded_at: datetime  # Actual timestamp when this was recorded
 
     def to_dict(self) -> dict:

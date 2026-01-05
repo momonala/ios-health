@@ -13,7 +13,10 @@ dependencies = [
     "schedule>=1.0.0",
     "pytest>=8.0.0",
     "black",
-    "isort",
+    "jupyter>=1.1.1",
+    "notebook>=7.5.1",
+    "pandas>=2.3.3",
+    "ruff>=0.14.10",
 ]
 
 [build-system]
