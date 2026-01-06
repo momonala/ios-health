@@ -72,6 +72,8 @@ Run the scheduler to auto-commit database changes hourly:
 uv run python git_commit_scheduler.py
 ```
 
+The scheduler checks for database changes every hour and commits them to git. If a commit already exists for the current day, it will amend that commit instead of creating a new one, keeping the git history clean with one commit per day.
+
 ## Testing
 
 Run all tests with coverage (configured in pytest.ini):
@@ -213,7 +215,7 @@ The web dashboard provides an iOS Health App-inspired interface with:
 |---------|-------------|
 | **Upsert logic** | Only keeps the latest entry per day; older duplicates are skipped |
 | **Timezone** | All times normalized to Europe/Berlin |
-| **Auto-commit** | Scheduler commits DB changes to git hourly |
+| **Auto-commit** | Scheduler commits DB changes to git hourly; amends same-day commits |
 | **Goals** | Default goals: 10,000 steps, 500 kcal, 8 km (configurable in frontend) |
 
 ## Data Models
@@ -245,5 +247,7 @@ cd install
 
 This will:
 1. Install uv and project dependencies
-2. Set up systemd services for Flask and the scheduler
+2. Set up systemd services for Flask and the scheduler (both enabled and started)
 3. Configure Cloudflared tunnel for `ios-health-dump.mnalavadi.org`
+
+The scheduler service runs as a long-running process (`Type=simple`) that checks for database changes hourly and commits them to git, amending same-day commits when applicable.

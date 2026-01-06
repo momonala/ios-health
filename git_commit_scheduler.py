@@ -14,22 +14,42 @@ BRANCH = "main"
 file_to_commit = DB_PATH
 
 
-def run_command(cmd):
+def run_command(cmd, check=True):
     result = subprocess.run(cmd, capture_output=True, text=True)
+    if check and result.returncode != 0:
+        logger.error("Command %s failed: %s", cmd, result.stderr.strip())
+        raise subprocess.CalledProcessError(result.returncode, cmd, result.stdout, result.stderr)
     return result.stdout.strip()
 
 
 def commit_if_changed():
-    diff = run_command(["git", "diff", file_to_commit])
-    if diff:
-        run_command(["git", "add", file_to_commit])
-        msg = f"Updated {file_to_commit}: {datetime.now().date()}"
+    diff = run_command(["git", "diff", file_to_commit], check=False)
+    if not diff:
+        logger.info(f"⏭️ [{datetime.now()}] No changes. Skipping commit.")
+        return
+
+    run_command(["git", "add", file_to_commit])
+    today = datetime.now().date()
+    msg = f"Updated {file_to_commit}: {today}"
+    should_amend = False
+
+    try:
+        last_commit_msg = run_command(["git", "log", "-1", "--pretty=%s"], check=False)
+        if str(today) in last_commit_msg:
+            should_amend = True
+    except subprocess.CalledProcessError:
+        logger.info("Unable to read last commit; creating a new commit.")
+
+    if should_amend:
+        run_command(["git", "commit", "--amend", "-m", msg])
+        run_command(["git", "push", "--force", "origin", BRANCH])
+        logger.info(f"✅ [{datetime.now()}] Changes amended to existing commit for {today}.")
+    else:
         run_command(["git", "commit", "-m", msg])
         run_command(["git", "push", "origin", BRANCH])
-        run_command(["cp", file_to_commit, f"{file_to_commit}.bk"])
-        logger.info(f"✅ [{datetime.now()}] Changes committed.")
-    else:
-        logger.info(f"⏭️ [{datetime.now()}] No changes. Skipping commit.")
+        logger.info(f"✅ [{datetime.now()}] Changes committed for {today}.")
+
+    run_command(["cp", file_to_commit, f"{file_to_commit}.bk"])
 
 
 if __name__ == "__main__":

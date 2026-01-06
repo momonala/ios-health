@@ -33,7 +33,9 @@ echo "✅ Enabling the service: projects_${service_name}.service"
 sudo systemctl enable projects_${service_name}.service
 sudo systemctl enable projects_${service_name}_scheduler.service
 sudo systemctl restart projects_${service_name}.service
+sudo systemctl restart projects_${service_name}_scheduler.service
 sudo systemctl status projects_${service_name}.service --no-pager
+sudo systemctl status projects_${service_name}_scheduler.service --no-pager
 
 echo "✅ Adding Cloudflared service"
 /home/mnalavadi/add_cloudflared_service.sh ${service_name}.mnalavadi.org $service_port

@@ -2,10 +2,10 @@
  Description=Dump data from iOS Health App via a shortcut
  After=multi-user.target
 
- [Service]
- WorkingDirectory=/home/mnalavadi/ios-health-dump
- Type=idle
- ExecStart=/home/mnalavadi/.local/bin/uv run python git_commit_scheduler.py
+[Service]
+WorkingDirectory=/home/mnalavadi/ios-health-dump
+Type=simple
+ExecStart=/home/mnalavadi/.local/bin/uv run python git_commit_scheduler.py
  User=mnalavadi
  Environment=PATH=/home/mnalavadi/miniconda3/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
