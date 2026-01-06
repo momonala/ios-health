@@ -72,6 +72,43 @@ Run the scheduler to auto-commit database changes hourly:
 uv run python git_commit_scheduler.py
 ```
 
+## Testing
+
+Run all tests with coverage (configured in pytest.ini):
+```bash
+uv run pytest
+```
+
+Run a specific test file:
+```bash
+uv run pytest tests/test_datamodels.py
+```
+
+Generate HTML coverage report:
+```bash
+uv run pytest --cov-report=html
+```
+
+Note: Test files are excluded from coverage reports.
+
+## Pre-commit Hook
+
+A pre-commit hook is installed that automatically runs:
+1. Tests (`uv run pytest`)
+2. Code formatting (`uv run black .`)
+3. Linting (`uv run ruff check . --fix`)
+
+The hook is installed at `.git/hooks/pre-commit`. To reinstall it:
+```bash
+cp pre-commit.sh .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+To skip the hook for a single commit:
+```bash
+git commit --no-verify
+```
+
 ## Project Structure
 
 ```

@@ -12,6 +12,7 @@ dependencies = [
     "joblib",
     "schedule>=1.0.0",
     "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
     "black",
     "jupyter>=1.1.1",
     "notebook>=7.5.1",
@@ -44,4 +45,17 @@ force_single_line = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v"
+addopts = "-v --cov=. --cov-report=term-missing"
+
+[tool.coverage.run]
+omit = ["tests/*", "*/test_*.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]

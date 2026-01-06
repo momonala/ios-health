@@ -40,7 +40,6 @@ def status():
 def get_health_data():
     """Get all health data for the dashboard."""
     data = get_all_health_data()
-    logger.info(f"🔍 Latest health record: {data[0]}")
     return jsonify({"data": data})
 
 
@@ -48,6 +47,9 @@ def get_health_data():
 def dump():
     """Save health dump from iOS app to database."""
     data = request.get_json()
+    if not data or not all(key in data for key in ["steps", "kcals", "km"]):
+        return jsonify({"status": "error", "message": "Missing required fields: steps, kcals, km"}), 400
+
     now = datetime.now()
     health_dump = HealthDump(
         date=now.date().isoformat(),
@@ -59,7 +61,6 @@ def dump():
     row_count = upsert_health_dump(health_dump)
     logger.info(f"📲 Saved health dump for iOS app: {health_dump} (rows: {row_count:,})")
     data = get_all_health_data()
-    logger.info(f"🔍 Latest health record: {data[0]}")
     return jsonify({"status": "success", "data": health_dump.to_dict(), "row_count": row_count}), 200
 
 
