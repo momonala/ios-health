@@ -1,5 +1,5 @@
 [project]
-name = "ios-health-dump"
+name = "ios-health"
 version = "0.1.0"
 description = "Dump data from iOS Health App via a shortcut"
 authors = [{name = "Mohit Nalavadi"}]

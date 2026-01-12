@@ -3,7 +3,7 @@
  After=multi-user.target
 
 [Service]
-WorkingDirectory=/home/mnalavadi/ios-health-dump
+WorkingDirectory=/home/mnalavadi/ios-health
 Type=simple
 ExecStart=/home/mnalavadi/.local/bin/uv run python -m src.data_backup_scheduler
  User=mnalavadi

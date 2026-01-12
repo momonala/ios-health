@@ -557,7 +557,7 @@ wheels = [
 ]
 
 [[package]]
-name = "ios-health-dump"
+name = "ios-health"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

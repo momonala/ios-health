@@ -58,7 +58,7 @@ uv sync
 ## Running
 
 ```bash
-uv run python -m src.app
+uv run app
 ```
 
 Server runs at http://localhost:5009
@@ -139,7 +139,7 @@ ios-health/
 │
 ├── install/
 │   ├── install.sh                                      # Setup script for Raspberry Pi
-│   ├── projects_ios-health-dump.service                # Systemd service for Flask
+│   ├── projects_ios-health.service                # Systemd service for Flask
 │   └── projects_ios-health-data-backup-scheduler.service  # Systemd service for scheduler
 │
 ├── health_dumps.db           # SQLite database (generated)
@@ -260,6 +260,6 @@ cd install
 This will:
 1. Install uv and project dependencies
 2. Set up systemd services for Flask and the scheduler (both enabled and started)
-3. Configure Cloudflared tunnel for `ios-health-dump.mnalavadi.org`
+3. Configure Cloudflared tunnel for `ios-health.mnalavadi.org`
 
 The scheduler service runs as a long-running process (`Type=simple`) that checks for database changes hourly and commits them to git, amending same-day commits when applicable.

@@ -1,5 +1,5 @@
-service_name="ios-health-dump"
-scheduler_service_name="${service_name}-data-backup-scheduler"
+service_name="ios-health"
+scheduler_service_name="${service_name}_data-backup-scheduler"
 service_port=5009
 
 
