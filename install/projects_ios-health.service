@@ -1,5 +1,5 @@
 [Unit]
- Description=Dump data from iOS Health App via a shortcut
+ Description=Data visualization for data scraped from iOS Health App via a shortcut
  After=multi-user.target
 
  [Service]

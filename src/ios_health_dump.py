@@ -3,7 +3,6 @@
 import logging
 from datetime import datetime
 
-
 from src.datamodels import HealthDump
 from src.db import TABLE_NAME
 from src.db import db_transaction

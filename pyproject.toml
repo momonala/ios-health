@@ -1,7 +1,7 @@
 [project]
 name = "ios-health"
 version = "0.1.0"
-description = "Dump data from iOS Health App via a shortcut"
+description = "Data visualization for data scraped from iOS Health App via a shortcut"
 authors = [{name = "Mohit Nalavadi"}]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -19,6 +19,7 @@ dependencies = [
     "pandas>=2.3.3",
     "ruff>=0.14.10",
     "tqdm>=4.67.1",
+    "isort>=7.0.0",
 ]
 
 [build-system]

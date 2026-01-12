@@ -1,5 +1,5 @@
 [Unit]
- Description=Dump data from iOS Health App via a shortcut
+ Description=Scheduled Backup Tool for iOS Health Data Scraper Tool
  After=multi-user.target
 
 [Service]

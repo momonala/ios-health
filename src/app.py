@@ -72,5 +72,9 @@ def dump():
     return jsonify({"status": "success", "data": health_dump.to_dict(), "row_count": row_count}), 200
 
 
-if __name__ == "__main__":
+def main():
     app.run(debug=True, host="0.0.0.0", port=5009)
+
+
+if __name__ == "__main__":
+    main()
