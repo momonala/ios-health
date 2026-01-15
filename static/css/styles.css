@@ -126,10 +126,25 @@ body {
     letter-spacing: -0.02em;
 }
 
+.header-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-xs);
+}
+
 .header-date {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-sm);
     color: var(--color-text-secondary);
     font-weight: 500;
+}
+
+.header-badge {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 /* ---------- Section Styles ---------- */
@@ -469,38 +484,32 @@ body {
     margin-bottom: 0;
 }
 
-/* Totals row - 5 columns on desktop */
-.stats-cards--totals {
+/* Grouped stats - 4 columns on desktop, 2 on mobile */
+.stats-cards--grouped {
     grid-template-columns: repeat(2, 1fr);
 }
 
 @media (min-width: 768px) {
-    .stats-cards--totals {
-        grid-template-columns: repeat(5, 1fr);
-    }
-}
-
-/* Averages row - 4 columns on desktop */
-.stats-cards--averages {
-    grid-template-columns: repeat(2, 1fr);
-}
-
-@media (min-width: 768px) {
-    .stats-cards--averages {
+    .stats-cards--grouped {
         grid-template-columns: repeat(4, 1fr);
     }
 }
 
-.stat-item {
+@media (max-width: 480px) {
+    .stats-cards--grouped {
+        grid-template-columns: 1fr;
+    }
+}
+
+.stat-card {
     background: var(--color-surface);
     border-radius: var(--radius-md);
     padding: var(--space-md);
-    text-align: center;
     position: relative;
     overflow: hidden;
 }
 
-.stat-item::before {
+.stat-card::before {
     content: '';
     position: absolute;
     top: 0;
@@ -510,68 +519,88 @@ body {
     opacity: 0.8;
 }
 
-.stat-item--steps::before {
+.stat-card--steps::before {
     background: var(--color-steps);
 }
 
-.stat-item--calories::before {
+.stat-card--calories::before {
     background: var(--color-calories);
 }
 
-.stat-item--distance::before {
+.stat-card--distance::before {
     background: var(--color-distance);
 }
 
-.stat-item--flights-climbed::before {
+.stat-card--flights-climbed::before {
     background: var(--color-flights-climbed);
 }
 
-.stat-label {
+.stat-card-title {
     display: block;
     font-size: var(--font-size-xs);
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-tertiary);
-    margin-bottom: var(--space-xs);
+    margin-bottom: var(--space-sm);
 }
 
-.stat-item--steps .stat-label {
+.stat-card--steps .stat-card-title {
     color: var(--color-steps);
 }
 
-.stat-item--calories .stat-label {
+.stat-card--calories .stat-card-title {
     color: var(--color-calories);
 }
 
-.stat-item--distance .stat-label {
+.stat-card--distance .stat-card-title {
     color: var(--color-distance);
 }
 
-.stat-item--flights-climbed .stat-label {
+.stat-card--flights-climbed .stat-card-title {
     color: var(--color-flights-climbed);
 }
 
-.stat-value {
-    font-size: var(--font-size-xl);
-    font-weight: 700;
+.stat-card-values {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.stat-card-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--space-sm);
+}
+
+.stat-card-label {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    color: var(--color-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-card-value {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
     font-variant-numeric: tabular-nums;
     color: var(--color-text-primary);
 }
 
-.stat-item--steps .stat-value {
+.stat-card--steps .stat-card-value {
     color: var(--color-steps);
 }
 
-.stat-item--calories .stat-value {
+.stat-card--calories .stat-card-value {
     color: var(--color-calories);
 }
 
-.stat-item--distance .stat-value {
+.stat-card--distance .stat-card-value {
     color: var(--color-distance);
 }
 
-.stat-item--flights-climbed .stat-value {
+.stat-card--flights-climbed .stat-card-value {
     color: var(--color-flights-climbed);
 }
 
@@ -721,7 +750,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--color-text-secondary);
-    padding: var(--space-md);
+    padding: var(--space-sm) var(--space-xs);
     text-align: left;
     border-bottom: 1px solid var(--color-border);
     z-index: 1;
@@ -766,7 +795,7 @@ body {
 .activity-th--distance,
 .activity-th--flights-climbed {
     text-align: right;
-    width: 100px;
+    width: 80px;
 }
 
 .activity-th--steps { color: var(--color-steps); }
@@ -806,8 +835,8 @@ body {
 }
 
 .activity-td {
-    padding: var(--space-md);
-    font-size: var(--font-size-sm);
+    padding: var(--space-sm) var(--space-xs);
+    font-size: var(--font-size-xs);
     border-bottom: 1px solid var(--color-border);
     color: var(--color-text-primary);
 }
@@ -934,16 +963,25 @@ body {
         flex: 1;
     }
     
+    .activity-th {
+        padding: var(--space-xs);
+        font-size: 10px;
+    }
+    
     .activity-th--steps,
     .activity-th--calories,
     .activity-th--distance,
     .activity-th--flights-climbed {
-        width: 70px;
+        width: 60px;
     }
     
     .activity-td {
-        padding: var(--space-sm);
-        font-size: var(--font-size-xs);
+        padding: var(--space-xs);
+        font-size: 11px;
+    }
+    
+    .activity-td--date {
+        font-size: 10px;
     }
 }
 

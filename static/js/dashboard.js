@@ -80,6 +80,13 @@ const formatDate = (dateStr) => {
             month: 'long', 
             day: 'numeric' 
         }),
+        compact: (() => {
+            const weekday = date.toLocaleDateString('en-US', { weekday: 'short' });
+            const day = date.getDate();
+            const month = date.toLocaleDateString('en-US', { month: 'short' });
+            const year = date.getFullYear();
+            return `${weekday}. ${day} ${month} ${year}`;
+        })(),
         iso: getDateOnly(dateStr),
     };
 };
@@ -325,13 +332,20 @@ const updateProgressRing = (id, percentage, animated = false) => {
     }
 };
 
-const updateHeaderDate = () => {
-    const formatted = new Date().toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-    });
-    updateText('headerDate', formatted);
+const updateHeaderDate = (data) => {
+    if (data && data.length > 0 && data[0].recorded_at) {
+        const lastUpdate = new Date(data[0].recorded_at);
+        const formatted = `Last Updated: ${lastUpdate.toLocaleDateString('en-US', {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+        })}`;
+        updateText('headerDate', formatted);
+    } else {
+        updateText('headerDate', 'Last Updated: --');
+    }
 };
 
 const updateTodayMetrics = (todayData, animated = false) => {
@@ -373,18 +387,33 @@ const updateStatistics = (data, period, selectedRange = null) => {
     const kmStats = calcStats(filteredData, 'km');
     const stairsStats = calcStats(filteredData, 'flights_climbed');
     
-    // Totals row
-    updateText('totalSteps', formatNumber(Math.round(stepsStats.total)));
-    updateText('totalKcals', formatNumber(Math.round(kcalsStats.total)));
-    updateText('totalKm', `${formatNumber(kmStats.total, 1)} km`);
-    updateText('totalFlightsClimbed', formatNumber(Math.round(stairsStats.total)));
-    updateText('daysTracked', filteredData.length);
+    // Update Days Tracked badge in header
+    updateText('daysTrackedBadge', `${filteredData.length} days`);
     
-    // Averages row
-    updateText('avgSteps', formatNumber(Math.round(stepsStats.avg)));
-    updateText('avgKcals', formatNumber(Math.round(kcalsStats.avg)));
-    updateText('avgKm', `${formatNumber(kmStats.avg, 1)} km`);
-    updateText('avgFlightsClimbed', formatNumber(Math.round(stairsStats.avg)));
+    // Update grouped stats cards (will be restructured in HTML)
+    // Steps card
+    updateText('stepsMin', formatNumber(Math.round(stepsStats.min)));
+    updateText('stepsMax', formatNumber(Math.round(stepsStats.max)));
+    updateText('stepsAvg', formatNumber(Math.round(stepsStats.avg)));
+    updateText('stepsTotal', formatNumber(Math.round(stepsStats.total)));
+    
+    // Distance card
+    updateText('distanceMin', `${formatNumber(kmStats.min, 1)} km`);
+    updateText('distanceMax', `${formatNumber(kmStats.max, 1)} km`);
+    updateText('distanceAvg', `${formatNumber(kmStats.avg, 1)} km`);
+    updateText('distanceTotal', `${formatNumber(kmStats.total, 1)} km`);
+    
+    // Flights card
+    updateText('flightsMin', formatNumber(Math.round(stairsStats.min)));
+    updateText('flightsMax', formatNumber(Math.round(stairsStats.max)));
+    updateText('flightsAvg', formatNumber(Math.round(stairsStats.avg)));
+    updateText('flightsTotal', formatNumber(Math.round(stairsStats.total)));
+    
+    // Calories card
+    updateText('caloriesMin', formatNumber(Math.round(kcalsStats.min)));
+    updateText('caloriesMax', formatNumber(Math.round(kcalsStats.max)));
+    updateText('caloriesAvg', formatNumber(Math.round(kcalsStats.avg)));
+    updateText('caloriesTotal', formatNumber(Math.round(kcalsStats.total)));
 };
 
 const escapeHtml = (str) => {
@@ -476,7 +505,7 @@ const renderActivityList = (data) => {
         
         return `
             <tr class="activity-tr" data-date="${dateIso}">
-                <td class="activity-td activity-td--date">${escapeHtml(dateInfo.fullDate)}</td>
+                <td class="activity-td activity-td--date">${escapeHtml(dateInfo.compact)}</td>
                 <td class="activity-td activity-td--steps">${escapeHtml(stepsStr)}</td>
                 <td class="activity-td activity-td--calories">${escapeHtml(kcalsStr)}</td>
                 <td class="activity-td activity-td--distance">${escapeHtml(kmStr)} km</td>
@@ -1192,7 +1221,6 @@ const fetchAllHealthData = async () => {
 };
 
 const initDashboard = async () => {
-    updateHeaderDate();
     initEventListeners();
     
     // Initialize groupBy options based on default period
@@ -1209,6 +1237,9 @@ const initDashboard = async () => {
     
     // Update state
     state.healthData = allHealthData;
+    
+    // Update header with last updated timestamp (data is sorted by date desc, so first item is most recent)
+    updateHeaderDate(allHealthData);
     
     // Update today metrics immediately with animation
     updateTodayMetrics(todayData, true);

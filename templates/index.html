@@ -17,7 +17,10 @@
         <header class="app-header">
             <div class="header-content">
                 <h1 class="app-title">Health</h1>
-                <span class="header-date" id="headerDate"></span>
+                <div class="header-info">
+                    <span class="header-date" id="headerDate"></span>
+                    <span class="header-badge" id="daysTrackedBadge">-- days</span>
+                </div>
             </div>
         </header>
 
@@ -157,47 +160,98 @@
                 </div>
             </div>
 
-            <!-- Totals Row -->
-            <div class="stats-cards stats-cards--totals">
-                <div class="stat-item stat-item--steps">
-                    <span class="stat-label">Total Steps</span>
-                    <span class="stat-value" id="totalSteps">--</span>
+            <!-- Stats Cards Row -->
+            <div class="stats-cards stats-cards--grouped">
+                <!-- Steps Card -->
+                <div class="stat-card stat-card--steps">
+                    <span class="stat-card-title">Steps</span>
+                    <div class="stat-card-values">
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Min</span>
+                            <span class="stat-card-value" id="stepsMin">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Max</span>
+                            <span class="stat-card-value" id="stepsMax">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Avg</span>
+                            <span class="stat-card-value" id="stepsAvg">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Total</span>
+                            <span class="stat-card-value" id="stepsTotal">--</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item stat-item--calories">
-                    <span class="stat-label">Total Active Calories</span>
-                    <span class="stat-value" id="totalKcals">--</span>
-                </div>
-                <div class="stat-item stat-item--distance">
-                    <span class="stat-label">Total Distance</span>
-                    <span class="stat-value" id="totalKm">--</span>
-                </div>
-                <div class="stat-item stat-item--flights-climbed">
-                    <span class="stat-label">Total Flights Climbed</span>
-                    <span class="stat-value" id="totalFlightsClimbed">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">Days Tracked</span>
-                    <span class="stat-value" id="daysTracked">--</span>
-                </div>
-            </div>
 
-            <!-- Averages Row -->
-            <div class="stats-cards stats-cards--averages">
-                <div class="stat-item stat-item--steps">
-                    <span class="stat-label">Avg Daily Steps</span>
-                    <span class="stat-value" id="avgSteps">--</span>
+                <!-- Distance Card -->
+                <div class="stat-card stat-card--distance">
+                    <span class="stat-card-title">Distance</span>
+                    <div class="stat-card-values">
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Min</span>
+                            <span class="stat-card-value" id="distanceMin">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Max</span>
+                            <span class="stat-card-value" id="distanceMax">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Avg</span>
+                            <span class="stat-card-value" id="distanceAvg">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Total</span>
+                            <span class="stat-card-value" id="distanceTotal">--</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item stat-item--calories">
-                    <span class="stat-label">Avg Daily Active Calories</span>
-                    <span class="stat-value" id="avgKcals">--</span>
+
+                <!-- Flights Card -->
+                <div class="stat-card stat-card--flights-climbed">
+                    <span class="stat-card-title">Flights</span>
+                    <div class="stat-card-values">
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Min</span>
+                            <span class="stat-card-value" id="flightsMin">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Max</span>
+                            <span class="stat-card-value" id="flightsMax">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Avg</span>
+                            <span class="stat-card-value" id="flightsAvg">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Total</span>
+                            <span class="stat-card-value" id="flightsTotal">--</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-item stat-item--distance">
-                    <span class="stat-label">Avg Daily Distance</span>
-                    <span class="stat-value" id="avgKm">--</span>
-                </div>
-                <div class="stat-item stat-item--flights-climbed">
-                    <span class="stat-label">Avg Daily Flights Climbed</span>
-                    <span class="stat-value" id="avgFlightsClimbed">--</span>
+
+                <!-- Calories Card -->
+                <div class="stat-card stat-card--calories">
+                    <span class="stat-card-title">Calories</span>
+                    <div class="stat-card-values">
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Min</span>
+                            <span class="stat-card-value" id="caloriesMin">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Max</span>
+                            <span class="stat-card-value" id="caloriesMax">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Avg</span>
+                            <span class="stat-card-value" id="caloriesAvg">--</span>
+                        </div>
+                        <div class="stat-card-row">
+                            <span class="stat-card-label">Total</span>
+                            <span class="stat-card-value" id="caloriesTotal">--</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -242,7 +296,7 @@
                                 <span class="sort-icon"></span>
                             </th>
                             <th class="activity-th activity-th--flights-climbed activity-th--sortable" data-sort="flights_climbed">
-                                Flights Climbed
+                                Flights
                                 <span class="sort-icon"></span>
                             </th>
                         </tr>
