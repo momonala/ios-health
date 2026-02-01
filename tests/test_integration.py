@@ -30,9 +30,13 @@ def client(temp_db_path):
         yield client
 
 
+DUMP_DATE = "5. Jan 2026 at 14:30"
+
+
 def test_complete_dump_flow(client, temp_db_path):
     """Test complete flow: POST dump -> verify in DB -> GET via API."""
     payload = {
+        "date": DUMP_DATE,
         "steps": 12000,
         "kcals": 550.0,
         "km": 9.5,
@@ -58,8 +62,8 @@ def test_complete_dump_flow(client, temp_db_path):
 
 def test_multiple_dumps_same_day(client, temp_db_path):
     """Test that newer dump for same day replaces older one."""
-    payload1 = {"steps": 5000, "kcals": 250.0, "km": 4.0}
-    payload2 = {"steps": 10000, "kcals": 500.0, "km": 8.0}
+    payload1 = {"date": "5. Jan 2026 at 10:00", "steps": 5000, "kcals": 250.0, "km": 4.0}
+    payload2 = {"date": "5. Jan 2026 at 20:00", "steps": 10000, "kcals": 500.0, "km": 8.0}
 
     client.post("/dump", json=payload1)
     client.post("/dump", json=payload2)
@@ -127,7 +131,7 @@ def test_api_returns_sorted_data(client, temp_db_path):
 
 def test_missing_optional_fields(client, temp_db_path):
     """Test that optional flights_climbed can be omitted."""
-    payload = {"steps": 10000, "kcals": 500.0, "km": 8.0}
+    payload = {"date": DUMP_DATE, "steps": 10000, "kcals": 500.0, "km": 8.0}
 
     response = client.post("/dump", json=payload)
     assert response.status_code == 200

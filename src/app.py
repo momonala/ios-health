@@ -120,19 +120,29 @@ def update_health_data(date_str):
 def dump():
     """Save health dump from iOS app to database."""
     data = request.get_json()
-    if not data or not all(key in data for key in ["steps", "kcals", "km"]):
-        return jsonify({"status": "error", "message": "Missing required fields: steps, kcals, km"}), 400
+    if not data or not all(key in data for key in ["steps", "kcals", "km", "date"]):
+        return jsonify({"status": "error", "message": "Missing required fields: steps, kcals, km, date"}), 400
 
-    now = datetime.now()
+    try:
+        dump_date_fmt = "%d. %b %Y at %H:%M"
+        recorded_at = datetime.strptime(data["date"].strip(), dump_date_fmt)
+    except (ValueError, TypeError) as e:
+        return (
+            jsonify(
+                {"status": "error", "message": f"Invalid date format, use e.g. '1. Feb 2026 at 13:49': {e}"}
+            ),
+            400,
+        )
+
     weight = float(data["weight"].replace(",", ".")) if data.get("weight") else None
     health_dump = HealthDump(
-        date=now.date().isoformat(),
+        date=recorded_at.date().isoformat(),
         steps=int(data["steps"]),
         kcals=float(data["kcals"]),
         km=float(data["km"]),
         flights_climbed=int(data["flights_climbed"]) if data.get("flights_climbed") is not None else None,
         weight=weight,
-        recorded_at=now,
+        recorded_at=recorded_at,
     )
     row_count = upsert_health_dump(health_dump)
     logger.info(f"📲 Saved health dump for iOS app: {health_dump} (rows: {row_count:,})")

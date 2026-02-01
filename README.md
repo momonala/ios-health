@@ -216,12 +216,13 @@ GET /api/health-data?date_start=2026-01-01&date_end=2026-01-31
 ```bash
 curl -X POST http://localhost:5009/dump \
   -H "Content-Type: application/json" \
-  -d '{"steps": 10000, "kcals": 500.5, "km": 8.2, "flights_climbed": 50, "weight": 72.5}'
+  -d '{"date": "1. Feb 2026 at 13:49", "steps": 10000, "kcals": 500.5, "km": 8.2, "flights_climbed": 50, "weight": 72.5}'
 ```
 
-Request body:
+Request body: `date` (required) format `d. Mon YYYY at HH:MM`; stored as ISO.
 ```json
 {
+  "date": "string (required, e.g. '1. Feb 2026 at 13:49')",
   "steps": "integer (required)",
   "kcals": "float (required)",
   "km": "float (required)",

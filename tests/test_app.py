@@ -11,6 +11,8 @@ from src.db import db_transaction
 from src.db import init_health_dumps_table
 from src.ios_health_dump import upsert_health_dump
 
+DUMP_DATE = "5. Jan 2026 at 14:30"
+
 
 @pytest.fixture
 def temp_db_path(tmp_path, monkeypatch):
@@ -250,7 +252,7 @@ class TestDump:
 
     def test_dump_creates_health_record(self, client, temp_db_path):
         """Dump endpoint creates health record from JSON."""
-        payload = {"steps": 10000, "kcals": 500.5, "km": 8.2}
+        payload = {"date": DUMP_DATE, "steps": 10000, "kcals": 500.5, "km": 8.2}
 
         response = client.post("/dump", json=payload)
 
@@ -264,12 +266,12 @@ class TestDump:
         assert data["steps"] == 10000
         assert data["kcals"] == 500.5
         assert data["km"] == 8.2
-        assert "date" in data
+        assert data["date"] == "2026-01-05"
         assert "recorded_at" in data
 
     def test_dump_saves_to_database(self, client, temp_db_path):
         """Dump endpoint saves data to database."""
-        payload = {"steps": 10000, "kcals": 500.5, "km": 8.2}
+        payload = {"date": DUMP_DATE, "steps": 10000, "kcals": 500.5, "km": 8.2}
 
         response = client.post("/dump", json=payload)
         assert response.status_code == 200
@@ -283,9 +285,18 @@ class TestDump:
         assert result["kcals"] == 500.5
         assert result["km"] == 8.2
 
+    def test_dump_requires_date(self, client):
+        """Dump endpoint requires date field."""
+        payload = {"steps": 10000, "kcals": 500.5, "km": 8.2}
+
+        response = client.post("/dump", json=payload)
+
+        assert response.status_code == 400
+        assert response.json["status"] == "error"
+
     def test_dump_requires_steps(self, client):
         """Dump endpoint requires steps field."""
-        payload = {"kcals": 500.5, "km": 8.2}
+        payload = {"date": DUMP_DATE, "kcals": 500.5, "km": 8.2}
 
         response = client.post("/dump", json=payload)
 
@@ -294,7 +305,7 @@ class TestDump:
 
     def test_dump_requires_kcals(self, client):
         """Dump endpoint requires kcals field."""
-        payload = {"steps": 10000, "km": 8.2}
+        payload = {"date": DUMP_DATE, "steps": 10000, "km": 8.2}
 
         response = client.post("/dump", json=payload)
 
@@ -303,7 +314,7 @@ class TestDump:
 
     def test_dump_requires_km(self, client):
         """Dump endpoint requires km field."""
-        payload = {"steps": 10000, "kcals": 500.5}
+        payload = {"date": DUMP_DATE, "steps": 10000, "kcals": 500.5}
 
         response = client.post("/dump", json=payload)
 
