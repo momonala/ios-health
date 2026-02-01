@@ -895,6 +895,31 @@ body {
 .activity-td--flights-climbed { color: var(--color-flights-climbed); }
 .activity-td--weight { color: var(--color-weight); }
 
+.activity-td--editable {
+    cursor: pointer;
+}
+.activity-td--editable:hover {
+    background: var(--color-surface-hover);
+}
+
+.activity-edit-input {
+    width: 100%;
+    max-width: 6em;
+    padding: var(--space-xs);
+    font-size: inherit;
+    font-weight: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-elevated);
+    color: inherit;
+}
+.activity-edit-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
 /* Results Info */
 .activity-results-info {
     font-size: var(--font-size-xs);

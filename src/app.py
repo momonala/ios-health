@@ -67,6 +67,55 @@ def get_health_data():
     return jsonify({"data": data})
 
 
+@app.route("/api/health-data/<date_str>", methods=["PATCH"])
+def update_health_data(date_str):
+    """Update health record for a specific date. Body: optional steps, kcals, km, flights_climbed, weight."""
+    if len(date_str) != 10 or date_str[4] != "-" or date_str[7] != "-":
+        return jsonify({"status": "error", "message": "Invalid date format, use YYYY-MM-DD"}), 400
+
+    existing = get_all_health_data(date_start=date_str, date_end=date_str)
+    if not existing:
+        return jsonify({"status": "error", "message": "No record for this date"}), 404
+
+    row = existing[0]
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "JSON body required"}), 400
+
+    def merge(key, parse):
+        if key not in data:
+            return row[key]
+        raw = data[key]
+        if raw is None:
+            return None
+        return parse(raw)
+
+    try:
+        steps = merge("steps", int)
+        kcals = merge("kcals", float)
+        km = merge("km", float)
+        flights_climbed = merge("flights_climbed", lambda x: int(x) if x is not None else None)
+        weight = merge(
+            "weight", lambda x: float(str(x).replace(",", ".")) if x is not None and x != "" else None
+        )
+    except (TypeError, ValueError) as e:
+        return jsonify({"status": "error", "message": f"Invalid value: {e}"}), 400
+
+    recorded_at = datetime.now()
+    health_dump = HealthDump(
+        date=date_str,
+        steps=steps,
+        kcals=kcals,
+        km=km,
+        flights_climbed=flights_climbed,
+        weight=weight,
+        recorded_at=recorded_at,
+    )
+    upsert_health_dump(health_dump)
+    logger.info(f"✏️ Updated health record for {date_str}")
+    return jsonify(health_dump.to_dict()), 200
+
+
 @app.route("/dump", methods=["POST"])
 def dump():
     """Save health dump from iOS app to database."""

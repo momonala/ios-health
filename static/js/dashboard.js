@@ -105,9 +105,9 @@ const getGoalsFromData = (data) => {
     const kmStats = calcStats(data, 'km');
     const flightsStats = calcStats(data, 'flights_climbed');
     return {
-        steps: stepsStats.avg > 0 ? Math.round(stepsStats.avg) : CONFIG.goals.steps,
-        kcals: kcalsStats.avg > 0 ? Math.round(kcalsStats.avg) : CONFIG.goals.kcals,
-        km: kmStats.avg > 0 ? kmStats.avg : CONFIG.goals.km,
+        steps: stepsStats.avg > 0 ? Math.ceil(stepsStats.avg / 500) * 500 : CONFIG.goals.steps,
+        kcals: kcalsStats.avg > 0 ? Math.ceil(kcalsStats.avg / 100) * 100 : CONFIG.goals.kcals,
+        km: kmStats.avg > 0 ? Math.ceil(kmStats.avg) : CONFIG.goals.km,
         flights_climbed: flightsStats.avg > 0 ? Math.round(flightsStats.avg) : CONFIG.goals.flights_climbed,
     };
 };
@@ -398,7 +398,7 @@ const updateTodayMetrics = (todayData, animated = false, goals = null) => {
 
     updateText('stepsGoalLabel', `of ${formatNumber(g.steps)} goal`);
     updateText('kcalsGoalLabel', `of ${formatNumber(g.kcals)} goal`);
-    updateText('kmGoalLabel', `of ${g.km} km goal`);
+    updateText('kmGoalLabel', `of ${formatNumber(g.km, 2)} km goal`);
     updateText('flightsClimbedGoalLabel', `of ${formatNumber(g.flights_climbed)} goal`);
 };
 
@@ -434,7 +434,7 @@ const updateStatistics = (data, period, selectedRange = null) => {
     // Distance card
     updateText('distanceMin', `${formatNumber(kmStats.min, 1)} km`);
     updateText('distanceMax', `${formatNumber(kmStats.max, 1)} km`);
-    updateText('distanceAvg', `${formatNumber(kmStats.avg, 1)} km`);
+    updateText('distanceAvg', `${formatNumber(kmStats.avg, 2)} km`);
     updateText('distanceTotal', `${formatNumber(kmStats.total, 1)} km`);
     
     // Flights card
@@ -551,15 +551,19 @@ const renderActivityList = (data) => {
         const kmStr = formatNumber(item.km, 1);
         const stairsStr = formatNumber(item.flights_climbed ?? 0);
         const weightStr = item.weight ? formatNumber(item.weight, 1) : '--';
-        
+        const stepsVal = item.steps ?? '';
+        const kcalsVal = item.kcals ?? '';
+        const kmVal = item.km ?? '';
+        const flightsVal = item.flights_climbed ?? '';
+        const weightVal = item.weight ?? '';
         return `
             <tr class="activity-tr" data-date="${dateIso}">
                 <td class="activity-td activity-td--date">${escapeHtml(dateInfo.compact)}</td>
-                <td class="activity-td activity-td--steps">${escapeHtml(stepsStr)}</td>
-                <td class="activity-td activity-td--calories">${escapeHtml(kcalsStr)}</td>
-                <td class="activity-td activity-td--distance">${escapeHtml(kmStr)} km</td>
-                <td class="activity-td activity-td--flights-climbed">${escapeHtml(stairsStr)}</td>
-                <td class="activity-td activity-td--weight">${escapeHtml(weightStr)}${item.weight ? ' kg' : ''}</td>
+                <td class="activity-td activity-td--steps activity-td--editable" data-steps="${stepsVal}">${escapeHtml(stepsStr)}</td>
+                <td class="activity-td activity-td--calories activity-td--editable" data-kcals="${kcalsVal}">${escapeHtml(kcalsStr)}</td>
+                <td class="activity-td activity-td--distance activity-td--editable" data-km="${kmVal}">${escapeHtml(kmStr)} km</td>
+                <td class="activity-td activity-td--flights-climbed activity-td--editable" data-flights-climbed="${flightsVal}">${escapeHtml(stairsStr)}</td>
+                <td class="activity-td activity-td--weight activity-td--editable" data-weight="${weightVal}">${escapeHtml(weightStr)}${item.weight ? ' kg' : ''}</td>
             </tr>
         `;
     }).join('');
@@ -1258,6 +1262,115 @@ const handleSortClick = (event) => {
     }
 };
 
+const TD_CLASS_TO_API_FIELD = {
+    'steps': 'steps',
+    'calories': 'kcals',
+    'distance': 'km',
+    'flights-climbed': 'flights_climbed',
+    'weight': 'weight',
+};
+
+const getApiFieldFromTd = (td) => {
+    for (const cls of td.classList) {
+        if (cls.startsWith('activity-td--') && cls !== 'activity-td--editable') {
+            const suffix = cls.replace('activity-td--', '');
+            return TD_CLASS_TO_API_FIELD[suffix] || suffix;
+        }
+    }
+    return null;
+};
+
+const getCurrentValueFromTd = (td, apiField) => {
+    const attr = apiField === 'flights_climbed' ? 'flights-climbed' : apiField;
+    const raw = td.getAttribute(`data-${attr}`) ?? '';
+    return raw === '' ? '' : raw;
+};
+
+const startActivityCellEdit = (td) => {
+    if (td.querySelector('input')) return;
+    const row = td.closest('tr');
+    const dateStr = row?.dataset?.date;
+    if (!dateStr) return;
+    const apiField = getApiFieldFromTd(td);
+    if (!apiField) return;
+    const currentVal = getCurrentValueFromTd(td, apiField);
+    const originalText = td.textContent.trim();
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = currentVal;
+    input.className = 'activity-edit-input';
+    td.textContent = '';
+    td.appendChild(input);
+    input.focus();
+    input.select();
+
+    const cancelEdit = () => {
+        td.textContent = originalText;
+        td.removeAttribute('data-editing');
+    };
+
+    const saveEdit = async () => {
+        if (!input.parentNode) return;
+        const raw = input.value.trim();
+        let parsed;
+        if (raw === '') {
+            if (apiField === 'weight' || apiField === 'flights_climbed') {
+                parsed = null;
+            } else {
+                cancelEdit();
+                return;
+            }
+        } else if (apiField === 'steps' || apiField === 'flights_climbed') {
+            const n = parseInt(raw, 10);
+            if (Number.isNaN(n) || n < 0) return;
+            parsed = n;
+        } else {
+            const n = parseFloat(raw.replace(',', '.'));
+            if (Number.isNaN(n) || n < 0) return;
+            parsed = n;
+        }
+        input.remove();
+        delete td.dataset.editing;
+        try {
+            const response = await fetch(`/api/health-data/${dateStr}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ [apiField]: parsed }),
+            });
+            if (response.ok) {
+                await refreshDashboard();
+            } else {
+                const err = await response.json().catch(() => ({}));
+                td.textContent = originalText;
+                alert(err.message || 'Update failed');
+            }
+        } catch (e) {
+            td.textContent = originalText;
+            alert('Update failed');
+        }
+    };
+
+    td.dataset.editing = '1';
+    input.addEventListener('blur', () => {
+        if (td.dataset.editing) saveEdit();
+    }, { once: true });
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (td.dataset.editing) saveEdit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEdit();
+        }
+    });
+};
+
+const handleActivityCellClick = (e) => {
+    const td = e.target.closest('.activity-td--editable');
+    if (!td || e.target.tagName === 'INPUT') return;
+    startActivityCellEdit(td);
+};
+
 const initEventListeners = () => {
     const periodSelector = document.querySelector('.period-selector');
     if (periodSelector) {
@@ -1278,6 +1391,11 @@ const initEventListeners = () => {
     if (tableHead) {
         tableHead.addEventListener('click', handleSortClick);
     }
+
+    const activityTable = document.getElementById('activityTable');
+    if (activityTable) {
+        activityTable.addEventListener('click', handleActivityCellClick);
+    }
 };
 
 // ============================================
@@ -1296,6 +1414,21 @@ const fetchAllHealthData = async () => {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
     return json.data || [];
+};
+
+const refreshDashboard = async () => {
+    const [todayData, allHealthData] = await Promise.all([
+        fetchTodayData(),
+        fetchAllHealthData(),
+    ]);
+    state.healthData = allHealthData;
+    updateHeaderDate(allHealthData);
+    const goals = getGoalsFromData(allHealthData);
+    updateTodayMetrics(todayData, true, goals);
+    updateStatistics(state.healthData, state.currentPeriod, state.selection);
+    updateCombinedChart(state.healthData);
+    renderActivityList(state.healthData);
+    updateLastSync(state.healthData);
 };
 
 const initDashboard = async () => {
