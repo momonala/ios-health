@@ -649,7 +649,10 @@ const updateLastSync = (data) => {
 // Combined Chart with Multi Y-Axis
 // ============================================
 
-const getCombinedChartOptions = () => ({
+const getCombinedChartOptions = () => {
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const yAxisDisplay = !isMobile;
+    return {
     responsive: true,
     maintainAspectRatio: false,
     interaction: {
@@ -725,13 +728,14 @@ const getCombinedChartOptions = () => ({
             beginAtZero: true,
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: {
+                display: yAxisDisplay,
                 color: CONFIG.chartColors.steps.main,
                 font: { family: '-apple-system, BlinkMacSystemFont, sans-serif', size: 10 },
                 callback: (value) => value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value,
             },
             border: { display: false },
             title: {
-                display: true,
+                display: yAxisDisplay,
                 text: 'Steps',
                 color: CONFIG.chartColors.steps.main,
                 font: { size: 11 },
@@ -743,12 +747,13 @@ const getCombinedChartOptions = () => ({
             beginAtZero: true,
             grid: { display: false },
             ticks: {
+                display: yAxisDisplay,
                 color: CONFIG.chartColors.kcals.main,
                 font: { family: '-apple-system, BlinkMacSystemFont, sans-serif', size: 10 },
             },
             border: { display: false },
             title: {
-                display: true,
+                display: yAxisDisplay,
                 text: 'Calories',
                 color: CONFIG.chartColors.kcals.main,
                 font: { size: 11 },
@@ -760,12 +765,13 @@ const getCombinedChartOptions = () => ({
             beginAtZero: true,
             grid: { display: false },
             ticks: {
+                display: yAxisDisplay,
                 color: CONFIG.chartColors.km.main,
                 font: { family: '-apple-system, BlinkMacSystemFont, sans-serif', size: 10 },
             },
             border: { display: false },
             title: {
-                display: true,
+                display: yAxisDisplay,
                 text: 'Distance (km)',
                 color: CONFIG.chartColors.km.main,
                 font: { size: 11 },
@@ -777,12 +783,13 @@ const getCombinedChartOptions = () => ({
             beginAtZero: true,
             grid: { display: false },
             ticks: {
+                display: yAxisDisplay,
                 color: CONFIG.chartColors.flights_climbed.main,
                 font: { family: '-apple-system, BlinkMacSystemFont, sans-serif', size: 10 },
             },
             border: { display: false },
             title: {
-                display: true,
+                display: yAxisDisplay,
                 text: 'Flights Climbed',
                 color: CONFIG.chartColors.flights_climbed.main,
                 font: { size: 11 },
@@ -794,12 +801,13 @@ const getCombinedChartOptions = () => ({
             beginAtZero: false,
             grid: { display: false },
             ticks: {
+                display: yAxisDisplay,
                 color: CONFIG.chartColors.weight.main,
                 font: { family: '-apple-system, BlinkMacSystemFont, sans-serif', size: 10 },
             },
             border: { display: false },
             title: {
-                display: true,
+                display: yAxisDisplay,
                 text: 'Weight (kg)',
                 color: CONFIG.chartColors.weight.main,
                 font: { size: 11 },
@@ -816,10 +824,11 @@ const getCombinedChartOptions = () => ({
         line: {
             tension: 0.2,
             borderWidth: 2,
-            spanGaps: true, // Connect lines across missing data points
+            spanGaps: true,
         },
     },
-});
+};
+};
 
 const updateCombinedChart = (data) => {
     const canvas = document.getElementById('combinedChart');
@@ -1376,17 +1385,17 @@ const initEventListeners = () => {
     if (periodSelector) {
         periodSelector.addEventListener('click', handlePeriodChange);
     }
-    
+
     const groupBySelect = document.getElementById('groupBySelect');
     if (groupBySelect) {
         groupBySelect.addEventListener('change', handleGroupByChange);
     }
-    
+
     const dateJump = document.getElementById('dateJump');
     if (dateJump) {
         dateJump.addEventListener('change', handleDateJump);
     }
-    
+
     const tableHead = document.querySelector('.activity-table thead');
     if (tableHead) {
         tableHead.addEventListener('click', handleSortClick);
@@ -1396,6 +1405,21 @@ const initEventListeners = () => {
     if (activityTable) {
         activityTable.addEventListener('click', handleActivityCellClick);
     }
+
+    let resizeTimeout;
+    let lastMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile !== lastMobile && state.chart) {
+                lastMobile = isMobile;
+                const newScales = getCombinedChartOptions().scales;
+                Object.assign(state.chart.options.scales, newScales);
+                state.chart.update();
+            }
+        }, 150);
+    });
 };
 
 // ============================================
