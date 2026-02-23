@@ -6,6 +6,7 @@ from datetime import datetime
 import schedule
 
 from src.db import DB_PATH
+from src.summary_notifier import send_summary_message_to_telegram
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,16 +43,16 @@ def commit_if_changed():
     should_amend = False
 
     try:
-        last_commit_msg = run_command(["git", "log", "-1", "--pretty=%s"], check=False)
+        last_commit_msg = run_command(["git", "log", "-1", "pretty=%s"], check=False)
         if str(today) in last_commit_msg:
             should_amend = True
     except subprocess.CalledProcessError:
         logger.info("Unable to read last commit; creating a new commit.")
 
     if should_amend:
-        run_command(["git", "commit", "--amend", "-m", msg])
+        run_command(["git", "commit", "amend", "-m", msg])
         msg = f"✅ [{datetime.now()}] Changes amended and force pushed to existing commit for {today} with {msg=}."
-        force_push_to_git(["git", "push", "--force", "origin", BRANCH], msg)
+        force_push_to_git(["git", "push", "force", "origin", BRANCH], msg)
     else:
         run_command(["git", "commit", "-m", msg])
         msg = f"✅ [{datetime.now()}] Changes committed and pushed for {today} with {msg=}."
@@ -61,6 +62,7 @@ def commit_if_changed():
 
 
 if __name__ == "__main__":
+    schedule.every().day.at("10:00").do(send_summary_message_to_telegram)
     schedule.every().hour.at(":00").do(commit_if_changed)
     logger.info("⏰ Init scheduler!")
     logger.info(f"⏰ {schedule.get_jobs()}")
