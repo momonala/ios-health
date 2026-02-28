@@ -14,7 +14,7 @@ DB_PATH = BASE_DIR / "data" / "health_dumps.db"
 TABLE_NAME = "health_dumps"
 
 
-def get_db_connection():
+def get_db_connection() -> sqlite3.Connection:
     """Get a connection to the SQLite database."""
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
@@ -37,7 +37,7 @@ def db_transaction():
     try:
         yield conn, cursor
         conn.commit()
-    except Exception:
+    except BaseException:
         conn.rollback()
         raise
     finally:

@@ -4,6 +4,8 @@
 
 /* ---------- CSS Custom Properties ---------- */
 :root {
+    /* Primary color for focus states (alias for steps) */
+    --color-primary: var(--color-steps);
     /* Color Palette - iOS Health Inspired */
     --color-steps: #5AC8FA;
     --color-steps-light: rgba(90, 200, 250, 0.15);

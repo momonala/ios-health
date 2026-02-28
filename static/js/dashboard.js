@@ -61,19 +61,23 @@ const state = {
 // Utility Functions
 // ============================================
 
-const formatNumber = (num, decimals = 0) => {
+function formatNumber(num, decimals = 0) {
     if (num === null || num === undefined || isNaN(num)) return '--';
     return num.toLocaleString('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     });
-};
+}
 
-const parseDate = (dateStr) => new Date(dateStr);
+function parseDate(dateStr) {
+    return new Date(dateStr);
+}
 
-const getDateOnly = (dateStr) => parseDate(dateStr).toISOString().split('T')[0];
+function getDateOnly(dateStr) {
+    return parseDate(dateStr).toISOString().split('T')[0];
+}
 
-const formatDate = (dateStr) => {
+function formatDate(dateStr) {
     const date = parseDate(dateStr);
     return {
         day: date.toLocaleDateString('en-US', { weekday: 'short' }),
@@ -93,40 +97,38 @@ const formatDate = (dateStr) => {
         })(),
         iso: getDateOnly(dateStr),
     };
-};
+}
 
-const getTodayISO = () => new Date().toISOString().split('T')[0];
+function getTodayISO() {
+    return new Date().toISOString().split('T')[0];
+}
 
-const calcPercentage = (value, goal) => (goal > 0 ? Math.min(100, Math.round((value / goal) * 100)) : 0);
+function calcPercentage(value, goal) {
+    return goal > 0 ? Math.min(100, Math.round((value / goal) * 100)) : 0;
+}
 
-const getGoalsFromData = (data) => {
-    const stepsStats = calcStats(data, 'steps');
-    const kcalsStats = calcStats(data, 'kcals');
-    const kmStats = calcStats(data, 'km');
-    const flightsStats = calcStats(data, 'flights_climbed');
-    return {
-        steps: stepsStats.avg > 0 ? Math.ceil(stepsStats.avg / 500) * 500 : CONFIG.goals.steps,
-        kcals: kcalsStats.avg > 0 ? Math.ceil(kcalsStats.avg / 100) * 100 : CONFIG.goals.kcals,
-        km: kmStats.avg > 0 ? Math.ceil(kmStats.avg) : CONFIG.goals.km,
-        flights_climbed: flightsStats.avg > 0 ? Math.round(flightsStats.avg) : CONFIG.goals.flights_climbed,
-    };
-};
+/** Use goals from API when present (has keys and at least one non-zero), else CONFIG. */
+function getGoals(apiGoals) {
+    if (!apiGoals || typeof apiGoals !== 'object') return CONFIG.goals;
+    const hasAny = Object.values(apiGoals).some((v) => v !== null && v !== undefined && Number(v) > 0);
+    return hasAny ? { ...CONFIG.goals, ...apiGoals } : CONFIG.goals;
+}
 
-const filterByPeriod = (data, period) => {
+function filterByPeriod(data, period) {
     if (period === 'all') return data;
     const days = CONFIG.periods[period];
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
     const cutoffStr = cutoff.toISOString().split('T')[0];
     return data.filter(item => getDateOnly(item.date) >= cutoffStr);
-};
+}
 
-const getMonthKey = (dateStr) => {
+function getMonthKey(dateStr) {
     const date = parseDate(dateStr);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-};
+}
 
-const getMonthLabel = (monthKey, formatMonthYear = false) => {
+function getMonthLabel(monthKey, formatMonthYear = false) {
     const [year, month] = monthKey.split('-');
     if (formatMonthYear) {
         const date = new Date(parseInt(year), parseInt(month) - 1, 1);
@@ -136,9 +138,9 @@ const getMonthLabel = (monthKey, formatMonthYear = false) => {
         month: 'short', 
         year: '2-digit' 
     });
-};
+}
 
-const groupDataByDay = (data) => {
+function groupDataByDay(data) {
     // Sort by date ascending
     const sorted = [...data].sort((a, b) => getDateOnly(a.date).localeCompare(getDateOnly(b.date)));
     const formatMonthYear = state.currentPeriod === 'all' || state.currentPeriod === 'year';
@@ -157,9 +159,9 @@ const groupDataByDay = (data) => {
         flights_climbed: sorted.map(d => Number(d.flights_climbed) || 0),
         weight: sorted.map(d => d.weight ? Number(d.weight) : null),
     };
-};
+}
 
-const groupDataByMonth = (data) => {
+function groupDataByMonth(data) {
     const monthMap = {};
     
     data.forEach(item => {
@@ -215,26 +217,25 @@ const groupDataByMonth = (data) => {
         flights_climbed: sortedMonths.map(m => monthMap[m].flights_climbed.count > 0 ? monthMap[m].flights_climbed.total / monthMap[m].flights_climbed.count : 0),
         weight: sortedMonths.map(m => monthMap[m].weight), // Use latest weight value, not average
     };
-};
+}
 
-const getWeekKey = (dateStr) => {
-    const date = parseDate(dateStr);
-    // Get the Monday of the week
+function getWeekKey(dateStr) {
+    const date = new Date(parseDate(dateStr).getTime());
     const day = date.getDay();
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(date.setDate(diff));
-    return monday.toISOString().split('T')[0];
-};
+    date.setDate(diff);
+    return date.toISOString().split('T')[0];
+}
 
-const getWeekLabel = (weekKey, formatMonthYear = false) => {
+function getWeekLabel(weekKey, formatMonthYear = false) {
     const date = new Date(weekKey);
     if (formatMonthYear) {
         return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
     }
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-};
+}
 
-const groupDataByWeek = (data) => {
+function groupDataByWeek(data) {
     const weekMap = {};
     
     data.forEach(item => {
@@ -289,9 +290,9 @@ const groupDataByWeek = (data) => {
         flights_climbed: sortedWeeks.map(w => weekMap[w].flights_climbed.count > 0 ? weekMap[w].flights_climbed.total / weekMap[w].flights_climbed.count : 0),
         weight: sortedWeeks.map(w => weekMap[w].weight), // Use latest weight value, not average
     };
-};
+}
 
-const getGroupedData = (data, groupBy) => {
+function getGroupedData(data, groupBy) {
     switch (groupBy) {
         case 'day':
             return groupDataByDay(data);
@@ -302,9 +303,9 @@ const getGroupedData = (data, groupBy) => {
         default:
             return groupDataByDay(data);
     }
-};
+}
 
-const calcStats = (data, field) => {
+function calcStats(data, field) {
     if (!data.length) return { avg: 0, total: 0, min: 0, max: 0 };
     const values = data.map(d => Number(d[field]) || 0).filter(v => v > 0);
     if (!values.length) return { avg: 0, total: 0, min: 0, max: 0 };
@@ -315,23 +316,23 @@ const calcStats = (data, field) => {
         min: Math.min(...values),
         max: Math.max(...values),
     };
-};
+}
 
-const calcAverage = (values) => {
+function calcAverage(values) {
     const valid = values.filter(v => v > 0);
     return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
-};
+}
 
 // ============================================
 // DOM Manipulation
 // ============================================
 
-const updateText = (id, value) => {
+function updateText(id, value) {
     const el = document.getElementById(id);
     if (el) el.textContent = value;
-};
+}
 
-const updateProgressRing = (id, percentage, animated = false) => {
+function updateProgressRing(id, percentage, animated = false) {
     const el = document.getElementById(id);
     if (!el) return;
     
@@ -364,7 +365,7 @@ const updateProgressRing = (id, percentage, animated = false) => {
     }
 };
 
-const updateHeaderDate = (data) => {
+function updateHeaderDate(data) {
     if (data && data.length > 0 && data[0].recorded_at) {
         const lastUpdate = new Date(data[0].recorded_at);
         const formatted = `Last Updated: ${lastUpdate.toLocaleDateString('en-US', {
@@ -378,9 +379,9 @@ const updateHeaderDate = (data) => {
     } else {
         updateText('headerDate', 'Last Updated: --');
     }
-};
+}
 
-const updateTodayMetrics = (todayData, animated = false, goals = null) => {
+function updateTodayMetrics(todayData, animated = false, goals = null) {
     if (!todayData) {
         todayData = { steps: 0, kcals: 0, km: 0, flights_climbed: 0 };
     }
@@ -400,9 +401,9 @@ const updateTodayMetrics = (todayData, animated = false, goals = null) => {
     updateText('kcalsGoalLabel', `of ${formatNumber(g.kcals)} goal`);
     updateText('kmGoalLabel', `of ${formatNumber(g.km, 2)} km goal`);
     updateText('flightsClimbedGoalLabel', `of ${formatNumber(g.flights_climbed)} goal`);
-};
+}
 
-const updateStatistics = (data, period, selectedRange = null) => {
+function updateStatistics(data, period, selectedRange = null) {
     let filteredData = filterByPeriod(data, period);
     
     // Apply selection range if provided
@@ -456,15 +457,15 @@ const updateStatistics = (data, period, selectedRange = null) => {
     updateText('weightMax', weightStats.max > 0 ? `${formatNumber(weightStats.max, 1)} kg` : '--');
     updateText('weightAvg', weightStats.avg > 0 ? `${formatNumber(weightStats.avg, 1)} kg` : '--');
     updateText('weightLatest', latestWeight ? `${formatNumber(latestWeight, 1)} kg` : '--');
-};
+}
 
-const escapeHtml = (str) => {
+function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
-};
+}
 
-const sortActivityData = (data, column, direction) => {
+function sortActivityData(data, column, direction) {
     const sorted = [...data];
     const multiplier = direction === 'asc' ? 1 : -1;
     
@@ -504,18 +505,18 @@ const sortActivityData = (data, column, direction) => {
     });
     
     return sorted;
-};
+}
 
-const updateSortIndicators = () => {
+function updateSortIndicators() {
     document.querySelectorAll('.activity-th--sortable').forEach(th => {
         th.classList.remove('sort-asc', 'sort-desc');
         if (th.dataset.sort === state.sort.column) {
             th.classList.add(`sort-${state.sort.direction}`);
         }
     });
-};
+}
 
-const renderActivityList = (data) => {
+function renderActivityList(data) {
     const container = document.getElementById('activityList');
     const resultsInfo = document.getElementById('activityResultsInfo');
     if (!container) return;
@@ -571,9 +572,9 @@ const renderActivityList = (data) => {
     if (resultsInfo) {
         resultsInfo.textContent = `${data.length} total entries`;
     }
-};
+}
 
-const jumpToDate = (dateStr) => {
+function jumpToDate(dateStr) {
     if (!dateStr) return;
     
     const container = document.getElementById('activityTableContainer');
@@ -631,9 +632,9 @@ const jumpToDate = (dateStr) => {
             closestRow.classList.add('highlight');
         }
     }
-};
+}
 
-const updateLastSync = (data) => {
+function updateLastSync(data) {
     if (data.length && data[0].recorded_at) {
         const syncTime = new Date(data[0].recorded_at);
         updateText('lastSync', syncTime.toLocaleString('en-US', {
@@ -649,7 +650,7 @@ const updateLastSync = (data) => {
 // Combined Chart with Multi Y-Axis
 // ============================================
 
-const getCombinedChartOptions = () => {
+function getCombinedChartOptions() {
     const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
     const yAxisDisplay = !isMobile;
     return {
@@ -828,9 +829,9 @@ const getCombinedChartOptions = () => {
         },
     },
 };
-};
+}
 
-const updateCombinedChart = (data) => {
+function updateCombinedChart(data) {
     const canvas = document.getElementById('combinedChart');
     if (!canvas) {
         console.error('Canvas not found: combinedChart');
@@ -952,9 +953,7 @@ const updateCombinedChart = (data) => {
     // Clean up existing overlay
     const existingOverlay = document.getElementById('chartSelectionOverlay');
     if (existingOverlay) existingOverlay.remove();
-    
-    console.log(`Creating combined chart with ${grouped.labels.length} data points (period: ${state.currentPeriod}, groupBy: ${state.groupBy})`);
-    
+
     state.chart = new Chart(ctx, {
         type: 'line',
         data: chartData,
@@ -963,13 +962,13 @@ const updateCombinedChart = (data) => {
     
     // Setup drag selection
     setupChartDragSelection(canvas, filteredData, grouped);
-};
+}
 
 // ============================================
 // Chart Drag Selection
 // ============================================
 
-const setupChartDragSelection = (canvas, filteredData, grouped) => {
+function setupChartDragSelection(canvas, filteredData, grouped) {
     let isDragging = false;
     let startX = null;
     let selectionOverlay = null;
@@ -1159,13 +1158,13 @@ const setupChartDragSelection = (canvas, filteredData, grouped) => {
     canvas.addEventListener('dblclick', () => {
         clearSelection();
     });
-};
+}
 
 // ============================================
 // Event Handlers
 // ============================================
 
-const getAvailableGroupByOptions = (period) => {
+function getAvailableGroupByOptions(period) {
     switch (period) {
         case 'week':
             return ['day'];
@@ -1176,9 +1175,9 @@ const getAvailableGroupByOptions = (period) => {
         default:
             return ['day', 'week', 'month'];
     }
-};
+}
 
-const updateGroupByOptions = (period) => {
+function updateGroupByOptions(period) {
     const select = document.getElementById('groupBySelect');
     if (!select) return;
     
@@ -1203,9 +1202,9 @@ const updateGroupByOptions = (period) => {
         }
         select.value = state.groupBy;
     }
-};
+}
 
-const handlePeriodChange = (event) => {
+function handlePeriodChange(event) {
     const btn = event.target.closest('.period-btn');
     if (!btn) return;
     
@@ -1225,9 +1224,9 @@ const handlePeriodChange = (event) => {
     
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
-};
+}
 
-const handleGroupByChange = (event) => {
+function handleGroupByChange(event) {
     state.groupBy = event.target.value;
     
     // Clear selection when groupBy changes
@@ -1238,13 +1237,13 @@ const handleGroupByChange = (event) => {
     
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
-};
+}
 
-const handleDateJump = (event) => {
+function handleDateJump(event) {
     jumpToDate(event.target.value);
-};
+}
 
-const handleSortClick = (event) => {
+function handleSortClick(event) {
     const th = event.target.closest('.activity-th--sortable');
     if (!th) return;
     
@@ -1269,7 +1268,7 @@ const handleSortClick = (event) => {
             behavior: 'smooth'
         });
     }
-};
+}
 
 const TD_CLASS_TO_API_FIELD = {
     'steps': 'steps',
@@ -1279,7 +1278,7 @@ const TD_CLASS_TO_API_FIELD = {
     'weight': 'weight',
 };
 
-const getApiFieldFromTd = (td) => {
+function getApiFieldFromTd(td) {
     for (const cls of td.classList) {
         if (cls.startsWith('activity-td--') && cls !== 'activity-td--editable') {
             const suffix = cls.replace('activity-td--', '');
@@ -1287,15 +1286,15 @@ const getApiFieldFromTd = (td) => {
         }
     }
     return null;
-};
+}
 
-const getCurrentValueFromTd = (td, apiField) => {
+function getCurrentValueFromTd(td, apiField) {
     const attr = apiField === 'flights_climbed' ? 'flights-climbed' : apiField;
     const raw = td.getAttribute(`data-${attr}`) ?? '';
     return raw === '' ? '' : raw;
-};
+}
 
-const startActivityCellEdit = (td) => {
+function startActivityCellEdit(td) {
     if (td.querySelector('input')) return;
     const row = td.closest('tr');
     const dateStr = row?.dataset?.date;
@@ -1372,15 +1371,15 @@ const startActivityCellEdit = (td) => {
             cancelEdit();
         }
     });
-};
+}
 
-const handleActivityCellClick = (e) => {
+function handleActivityCellClick(e) {
     const td = e.target.closest('.activity-td--editable');
     if (!td || e.target.tagName === 'INPUT') return;
     startActivityCellEdit(td);
-};
+}
 
-const initEventListeners = () => {
+function initEventListeners() {
     const periodSelector = document.querySelector('.period-selector');
     if (periodSelector) {
         periodSelector.addEventListener('click', handlePeriodChange);
@@ -1420,67 +1419,63 @@ const initEventListeners = () => {
             }
         }, 150);
     });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            refreshDashboard();
+        }
+    });
 };
 
 // ============================================
 // Data Fetching & Init
 // ============================================
 
-const fetchTodayData = async () => {
-    const response = await fetch(`${CONFIG.apiEndpoint}?date=today`);
+async function fetchTodayData() {
+    const response = await fetch(`${CONFIG.apiEndpoint}?date=today`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
     return json.data.length > 0 ? json.data[0] : null;
 };
 
-const fetchAllHealthData = async () => {
-    const response = await fetch(CONFIG.apiEndpoint);
+async function fetchAllHealthData() {
+    const response = await fetch(CONFIG.apiEndpoint, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
-    return json.data || [];
+    return { data: json.data || [], goals: json.goals ?? null };
 };
 
-const refreshDashboard = async () => {
-    const [todayData, allHealthData] = await Promise.all([
+async function refreshDashboard() {
+    const [todayData, healthResponse] = await Promise.all([
         fetchTodayData(),
         fetchAllHealthData(),
     ]);
+    const { data: allHealthData, goals: apiGoals } = healthResponse;
     state.healthData = allHealthData;
     updateHeaderDate(allHealthData);
-    const goals = getGoalsFromData(allHealthData);
-    updateTodayMetrics(todayData, true, goals);
+    updateTodayMetrics(todayData, true, getGoals(apiGoals));
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
     renderActivityList(state.healthData);
     updateLastSync(state.healthData);
 };
 
-const initDashboard = async () => {
+async function initDashboard() {
     initEventListeners();
     
     // Initialize groupBy options based on default period
     updateGroupByOptions(state.currentPeriod);
     
     // Fetch today's data first (fast) and historical data in parallel (slower)
-    const [todayData, allHealthData] = await Promise.all([
+    const [todayData, healthResponse] = await Promise.all([
         fetchTodayData(),
         fetchAllHealthData(),
     ]);
-    
-    console.log('Loaded today data:', todayData);
-    console.log('Loaded all health data:', allHealthData.length, 'records');
-    
-    // Update state
-    state.healthData = allHealthData;
-    
-    // Update header with last updated timestamp (data is sorted by date desc, so first item is most recent)
-    updateHeaderDate(allHealthData);
+    const { data: allHealthData, goals: apiGoals } = healthResponse;
 
-    // Goals = all-time average of each metric (fallback to CONFIG.goals when no data)
-    const goals = getGoalsFromData(allHealthData);
-    updateTodayMetrics(todayData, true, goals);
-    
-    // Update other sections with historical data
+    state.healthData = allHealthData;
+    updateHeaderDate(allHealthData);
+    updateTodayMetrics(todayData, true, getGoals(apiGoals));
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
     renderActivityList(state.healthData);

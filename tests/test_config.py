@@ -15,7 +15,7 @@ runner = CliRunner()
     [
         ("--project-name", "ios-health"),
         ("--project-version", "0.1.0"),
-        ("--flask-port", "5007"),
+        ("--flask-port", "5009"),
         ("--database-path", "health_dumps.db"),
     ],
 )

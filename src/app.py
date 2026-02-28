@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Callable
 
 from flask import Flask
 from flask import jsonify
@@ -8,7 +9,9 @@ from flask import render_template
 from flask import request
 from flask import send_from_directory
 
+from src.config import FLASK_PORT
 from src.datamodels import HealthDump
+from src.health_goals import get_goals
 from src.ios_health_dump import get_all_health_data
 from src.ios_health_dump import upsert_health_dump
 
@@ -23,6 +26,33 @@ app = Flask(
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("werkzeug").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
+
+
+def _is_invalid_date_format(date_str: str) -> bool:
+    """Return True if date_str is not YYYY-MM-DD format."""
+    return len(date_str) != 10 or date_str[4] != "-" or date_str[7] != "-"
+
+
+def _parse_weight(raw: str | int | float) -> float | None:
+    """Parse weight from API input, accepting comma as decimal separator."""
+    if raw is None or raw == "":
+        return None
+    return float(str(raw).replace(",", "."))
+
+
+def _merge_field(
+    data: dict,
+    row: dict,
+    key: str,
+    parse: Callable[..., int | float | None],
+) -> int | float | None:
+    """Merge a field from request data into existing row, using parse for conversion."""
+    if key not in data:
+        return row[key]
+    raw = data[key]
+    if raw is None:
+        return None
+    return parse(raw)
 
 
 @app.route("/favicon.ico")
@@ -56,7 +86,6 @@ def get_health_data():
     date_start = request.args.get("date_start")
     date_end = request.args.get("date_end")
 
-    # Handle 'date' shortcut parameter
     if date_param:
         if date_param.lower() == "today":
             date_start = date_end = datetime.now().date().isoformat()
@@ -64,13 +93,14 @@ def get_health_data():
             date_start = date_end = date_param
 
     data = get_all_health_data(date_start=date_start, date_end=date_end)
-    return jsonify({"data": data})
+    goals = get_goals()
+    return jsonify({"data": data, "goals": goals})
 
 
 @app.route("/api/health-data/<date_str>", methods=["PATCH"])
-def update_health_data(date_str):
+def update_health_data(date_str: str):
     """Update health record for a specific date. Body: optional steps, kcals, km, flights_climbed, weight."""
-    if len(date_str) != 10 or date_str[4] != "-" or date_str[7] != "-":
+    if _is_invalid_date_format(date_str):
         return jsonify({"status": "error", "message": "Invalid date format, use YYYY-MM-DD"}), 400
 
     existing = get_all_health_data(date_start=date_str, date_end=date_str)
@@ -82,22 +112,15 @@ def update_health_data(date_str):
     if not data:
         return jsonify({"status": "error", "message": "JSON body required"}), 400
 
-    def merge(key, parse):
-        if key not in data:
-            return row[key]
-        raw = data[key]
-        if raw is None:
-            return None
-        return parse(raw)
+    def _parse_flights(x):
+        return int(x) if x is not None else None
 
     try:
-        steps = merge("steps", int)
-        kcals = merge("kcals", float)
-        km = merge("km", float)
-        flights_climbed = merge("flights_climbed", lambda x: int(x) if x is not None else None)
-        weight = merge(
-            "weight", lambda x: float(str(x).replace(",", ".")) if x is not None and x != "" else None
-        )
+        steps = _merge_field(data, row, "steps", int)
+        kcals = _merge_field(data, row, "kcals", float)
+        km = _merge_field(data, row, "km", float)
+        flights_climbed = _merge_field(data, row, "flights_climbed", _parse_flights)
+        weight = _merge_field(data, row, "weight", _parse_weight)
     except (TypeError, ValueError) as e:
         return jsonify({"status": "error", "message": f"Invalid value: {e}"}), 400
 
@@ -150,8 +173,8 @@ def dump():
     return jsonify({"status": "success", "data": health_dump.to_dict(), "row_count": row_count}), 200
 
 
-def main():
-    app.run(debug=True, host="0.0.0.0", port=5009)
+def main() -> None:
+    app.run(debug=True, host="0.0.0.0", port=FLASK_PORT)
 
 
 if __name__ == "__main__":

@@ -15,7 +15,7 @@ BRANCH = "main"
 file_to_commit = DB_PATH
 
 
-def run_command(cmd, check=True):
+def run_command(cmd: list[str], check: bool = True) -> str:
     result = subprocess.run(cmd, capture_output=True, text=True)
     if check and result.returncode != 0:
         logger.error("Command %s failed: %s", cmd, result.stderr.strip())
@@ -23,7 +23,7 @@ def run_command(cmd, check=True):
     return result.stdout.strip()
 
 
-def force_push_to_git(command: list[str], msg: str):
+def force_push_to_git(command: list[str], msg: str) -> None:
     try:
         run_command(command)
         logger.info(msg)
@@ -31,7 +31,7 @@ def force_push_to_git(command: list[str], msg: str):
         logger.warning(f"❌ Failed to push to git for {command=} with {msg=}")
 
 
-def commit_if_changed():
+def commit_if_changed() -> None:
     diff = run_command(["git", "diff", file_to_commit], check=False)
     if not diff:
         logger.info(f"⏭️ [{datetime.now()}] No changes. Skipping commit.")
@@ -50,9 +50,9 @@ def commit_if_changed():
         logger.info("Unable to read last commit; creating a new commit.")
 
     if should_amend:
-        run_command(["git", "commit", "amend", "-m", msg])
+        run_command(["git", "commit", "--amend", "-m", msg])
         msg = f"✅ [{datetime.now()}] Changes amended and force pushed to existing commit for {today} with {msg=}."
-        force_push_to_git(["git", "push", "force", "origin", BRANCH], msg)
+        force_push_to_git(["git", "push", "--force", "origin", BRANCH], msg)
     else:
         run_command(["git", "commit", "-m", msg])
         msg = f"✅ [{datetime.now()}] Changes committed and pushed for {today} with {msg=}."

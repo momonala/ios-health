@@ -75,7 +75,7 @@ def get_all_health_data(
     fill_missing_dates: bool = True,
     date_start: str | None = None,
     date_end: str | None = None,
-) -> list[dict[str, any]]:
+) -> list[dict[str, str | int | float | None]]:
     """Get health data from the database, sorted by date (most recent first).
 
     Args:
@@ -122,8 +122,5 @@ def get_all_health_data(
         }
         for row in rows
     ]
-
-    if fill_missing_dates:
-        pass
 
     return data

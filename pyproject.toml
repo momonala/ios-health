@@ -24,8 +24,13 @@ dependencies = [
 ]
 
 [tool.config]
-flask_port = 5007
+flask_port = 5009
 database_path = "health_dumps.db"
+# Goal outlier caps: values above these are excluded when computing goal averages
+goal_outlier_steps_max = 18000
+goal_outlier_km_max = 15
+goal_outlier_flights_max = 20
+goal_outlier_kcals_max = 600
 
 [build-system]
 requires = ["hatchling"]

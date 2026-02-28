@@ -12,7 +12,7 @@ class HealthDump:
     weight: float | None
     recorded_at: datetime  # Actual timestamp when this was recorded
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | int | float | None]:
         return {
             "date": self.date,
             "steps": self.steps,

@@ -12,6 +12,10 @@ _tool_config = _config["tool"]["config"]
 
 FLASK_PORT = _tool_config["flask_port"]
 DATABASE_PATH = _tool_config["database_path"]
+GOAL_OUTLIER_STEPS_MAX = _tool_config.get("goal_outlier_steps_max", 20000)
+GOAL_OUTLIER_KM_MAX = _tool_config.get("goal_outlier_km_max", 18)
+GOAL_OUTLIER_FLIGHTS_MAX = _tool_config.get("goal_outlier_flights_max", 20)
+GOAL_OUTLIER_KCALS_MAX = _tool_config.get("goal_outlier_kcals_max", 600)
 
 
 # fmt: off
@@ -30,23 +34,24 @@ def config_cli(
         typer.echo(f"database_path={DATABASE_PATH}")
         return
 
-    param_map = {
-        project_name: _project_config["name"],
-        project_version: _project_config["version"],
-        flask_port: FLASK_PORT,
-        database_path: DATABASE_PATH,
-    }
-
-    for is_set, value in param_map.items():
-        if is_set:
-            typer.echo(value)
-            return
+    if project_name:
+        typer.echo(_project_config["name"])
+        return
+    if project_version:
+        typer.echo(_project_config["version"])
+        return
+    if flask_port:
+        typer.echo(FLASK_PORT)
+        return
+    if database_path:
+        typer.echo(DATABASE_PATH)
+        return
 
     typer.secho("Error: No config key specified. Use --help to see available options.", fg=typer.colors.RED, err=True)
     raise typer.Exit(1)
 
 
-def main():
+def main() -> None:
     typer.run(config_cli)
 
 
