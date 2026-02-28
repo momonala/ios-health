@@ -9,6 +9,7 @@ from flask import request
 from flask import send_from_directory
 
 from src.datamodels import HealthDump
+from src.health_goals import get_goals
 from src.ios_health_dump import get_all_health_data
 from src.ios_health_dump import upsert_health_dump
 
@@ -56,7 +57,6 @@ def get_health_data():
     date_start = request.args.get("date_start")
     date_end = request.args.get("date_end")
 
-    # Handle 'date' shortcut parameter
     if date_param:
         if date_param.lower() == "today":
             date_start = date_end = datetime.now().date().isoformat()
@@ -64,7 +64,8 @@ def get_health_data():
             date_start = date_end = date_param
 
     data = get_all_health_data(date_start=date_start, date_end=date_end)
-    return jsonify({"data": data})
+    goals = get_goals()
+    return jsonify({"data": data, "goals": goals})
 
 
 @app.route("/api/health-data/<date_str>", methods=["PATCH"])

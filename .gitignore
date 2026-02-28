@@ -74,7 +74,7 @@ google_application_credentials.json
 *.key
 .env
 .env.local
-secrets/
+secrets.py
 
 # Media files
 *.mp4
@@ -88,8 +88,6 @@ event_cache.json
 app_calendar_events.json
 recent_locations.html
 static/*.html
-data/
-src/secrets.py
 
 # Local development
 .local/

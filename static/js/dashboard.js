@@ -99,18 +99,12 @@ const getTodayISO = () => new Date().toISOString().split('T')[0];
 
 const calcPercentage = (value, goal) => (goal > 0 ? Math.min(100, Math.round((value / goal) * 100)) : 0);
 
-const getGoalsFromData = (data) => {
-    const stepsStats = calcStats(data, 'steps');
-    const kcalsStats = calcStats(data, 'kcals');
-    const kmStats = calcStats(data, 'km');
-    const flightsStats = calcStats(data, 'flights_climbed');
-    return {
-        steps: stepsStats.avg > 0 ? Math.ceil(stepsStats.avg / 500) * 500 : CONFIG.goals.steps,
-        kcals: kcalsStats.avg > 0 ? Math.ceil(kcalsStats.avg / 100) * 100 : CONFIG.goals.kcals,
-        km: kmStats.avg > 0 ? Math.ceil(kmStats.avg) : CONFIG.goals.km,
-        flights_climbed: flightsStats.avg > 0 ? Math.round(flightsStats.avg) : CONFIG.goals.flights_climbed,
-    };
-};
+/** Use goals from API when present (has keys and at least one non-zero), else CONFIG. */
+function getGoals(apiGoals) {
+    if (!apiGoals || typeof apiGoals !== 'object') return CONFIG.goals;
+    const hasAny = Object.values(apiGoals).some((v) => v !== null && v !== undefined && Number(v) > 0);
+    return hasAny ? { ...CONFIG.goals, ...apiGoals } : CONFIG.goals;
+}
 
 const filterByPeriod = (data, period) => {
     if (period === 'all') return data;
@@ -1420,6 +1414,12 @@ const initEventListeners = () => {
             }
         }, 150);
     });
+
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            refreshDashboard();
+        }
+    });
 };
 
 // ============================================
@@ -1427,28 +1427,28 @@ const initEventListeners = () => {
 // ============================================
 
 const fetchTodayData = async () => {
-    const response = await fetch(`${CONFIG.apiEndpoint}?date=today`);
+    const response = await fetch(`${CONFIG.apiEndpoint}?date=today`, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
     return json.data.length > 0 ? json.data[0] : null;
 };
 
 const fetchAllHealthData = async () => {
-    const response = await fetch(CONFIG.apiEndpoint);
+    const response = await fetch(CONFIG.apiEndpoint, { cache: 'no-store' });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const json = await response.json();
-    return json.data || [];
+    return { data: json.data || [], goals: json.goals ?? null };
 };
 
 const refreshDashboard = async () => {
-    const [todayData, allHealthData] = await Promise.all([
+    const [todayData, healthResponse] = await Promise.all([
         fetchTodayData(),
         fetchAllHealthData(),
     ]);
+    const { data: allHealthData, goals: apiGoals } = healthResponse;
     state.healthData = allHealthData;
     updateHeaderDate(allHealthData);
-    const goals = getGoalsFromData(allHealthData);
-    updateTodayMetrics(todayData, true, goals);
+    updateTodayMetrics(todayData, true, getGoals(apiGoals));
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
     renderActivityList(state.healthData);
@@ -1462,25 +1462,18 @@ const initDashboard = async () => {
     updateGroupByOptions(state.currentPeriod);
     
     // Fetch today's data first (fast) and historical data in parallel (slower)
-    const [todayData, allHealthData] = await Promise.all([
+    const [todayData, healthResponse] = await Promise.all([
         fetchTodayData(),
         fetchAllHealthData(),
     ]);
+    const { data: allHealthData, goals: apiGoals } = healthResponse;
     
     console.log('Loaded today data:', todayData);
     console.log('Loaded all health data:', allHealthData.length, 'records');
     
-    // Update state
     state.healthData = allHealthData;
-    
-    // Update header with last updated timestamp (data is sorted by date desc, so first item is most recent)
     updateHeaderDate(allHealthData);
-
-    // Goals = all-time average of each metric (fallback to CONFIG.goals when no data)
-    const goals = getGoalsFromData(allHealthData);
-    updateTodayMetrics(todayData, true, goals);
-    
-    // Update other sections with historical data
+    updateTodayMetrics(todayData, true, getGoals(apiGoals));
     updateStatistics(state.healthData, state.currentPeriod, state.selection);
     updateCombinedChart(state.healthData);
     renderActivityList(state.healthData);

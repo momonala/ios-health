@@ -1,21 +1,16 @@
 import logging
-import math
 from datetime import datetime
 from datetime import timedelta
 
 import requests
 
+from src.health_goals import get_goals
 from src.ios_health_dump import get_all_health_data
 from src.secrets import TELEGRAM_CHAT_ID
 from src.secrets import TELEGRAM_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def _round_up_to_nearest(value: float, nearest: int) -> int:
-    """Round value up to the nearest multiple of nearest e.g. 10, 100, 1000)."""
-    return int(math.ceil(value / nearest) * nearest)
 
 
 def _goal_reached(percent: float) -> str:
@@ -36,17 +31,10 @@ def send_summary_message_to_telegram():
     today_stats["kcals"] = int(today_stats["kcals"])
     today_stats["km"] = round(today_stats["km"], 2)
 
-    # rm nones
-    flights = list(filter(None, [s["flights_climbed"] for s in health_stats]))
     weights = list(filter(None, [s["weight"] for s in health_stats]))
     latest_weight = weights[0]
 
-    avg_stats = {
-        "steps": _round_up_to_nearest(sum(s["steps"] for s in health_stats) / len(health_stats), 1000),
-        "kcals": _round_up_to_nearest(sum(s["kcals"] for s in health_stats) / len(health_stats), 100),
-        "km": _round_up_to_nearest(sum(s["km"] for s in health_stats) / len(health_stats), 1),
-        "flights_climbed": _round_up_to_nearest(sum(flights) / len(flights), 1),
-    }
+    avg_stats = get_goals(data=health_stats)
 
     steps_percent = today_stats["steps"] / avg_stats["steps"]
     kcals_percent = today_stats["kcals"] / avg_stats["kcals"]

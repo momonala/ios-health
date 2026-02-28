@@ -72,7 +72,8 @@ class TestGetHealthData:
         response = client.get("/api/health-data")
 
         assert response.status_code == 200
-        assert response.json == {"data": []}
+        assert response.json["data"] == []
+        assert response.json["goals"] == {"steps": 0, "kcals": 0, "km": 0, "flights_climbed": 0}
 
     def test_get_health_data_returns_all_records(self, client, temp_db_path):
         """Get health data returns all records sorted by date DESC."""
@@ -106,6 +107,31 @@ class TestGetHealthData:
         assert data[0]["date"] == "2026-01-06"
         assert data[1]["date"] == "2026-01-05"
 
+        goals = response.json.get("goals")
+        assert goals is not None
+        assert goals["steps"] == 9000  # ceil(9000 avg) to nearest 1000
+        assert goals["kcals"] == 500  # ceil(450.25 avg) to nearest 100
+        assert goals["km"] == 8  # ceil(7.35 avg) to nearest 1
+        assert goals["flights_climbed"] == 40  # ceil(40 avg) to nearest 1
+
+    def test_get_health_data_always_includes_goals(self, client, temp_db_path):
+        """Response always includes goals (computed from returned data)."""
+        upsert_health_dump(
+            HealthDump(
+                date="2026-01-06",
+                steps=8000,
+                kcals=400.0,
+                km=6.5,
+                flights_climbed=30,
+                weight=71.0,
+                recorded_at=datetime(2026, 1, 6, 14, 30, 0),
+            )
+        )
+        response = client.get("/api/health-data?date_start=2026-01-06&date_end=2026-01-06")
+        assert response.status_code == 200
+        assert "goals" in response.json
+        assert response.json["goals"] == {"steps": 8000, "kcals": 400, "km": 7, "flights_climbed": 30}
+
 
 class TestGetHealthDataWithFilters:
     """Tests for /api/health-data endpoint with date filtering."""
@@ -115,7 +141,8 @@ class TestGetHealthDataWithFilters:
         response = client.get("/api/health-data?date=today")
 
         assert response.status_code == 200
-        assert response.json == {"data": []}
+        assert response.json["data"] == []
+        assert response.json["goals"] == {"steps": 0, "kcals": 0, "km": 0, "flights_climbed": 0}
 
     def test_get_health_data_with_date_today_returns_today_only(self, client, temp_db_path):
         """Get health data with date=today returns only today's record."""
@@ -154,25 +181,24 @@ class TestGetHealthDataWithFilters:
         assert data[0]["kcals"] == 500.5
 
     def test_get_health_data_with_date_today_returns_empty_when_no_today_record(self, client, temp_db_path):
-        """Get health data with date=today returns empty list when there's no today record."""
-        yesterday = "2026-01-05"
-
-        dump_yesterday = HealthDump(
-            date=yesterday,
-            steps=8000,
-            kcals=400.0,
-            km=6.5,
-            flights_climbed=30,
-            weight=71.0,
-            recorded_at=datetime(2026, 1, 5, 14, 30, 0),
+        """Get health data for a date with no record returns empty data and zero goals."""
+        upsert_health_dump(
+            HealthDump(
+                date="2026-01-05",
+                steps=8000,
+                kcals=400.0,
+                km=6.5,
+                flights_climbed=30,
+                weight=71.0,
+                recorded_at=datetime(2026, 1, 5, 14, 30, 0),
+            )
         )
 
-        upsert_health_dump(dump_yesterday)
-
-        response = client.get("/api/health-data?date=today")
+        response = client.get("/api/health-data?date=2026-01-06")
 
         assert response.status_code == 200
-        assert response.json == {"data": []}
+        assert response.json["data"] == []
+        assert "goals" in response.json
 
     def test_get_health_data_with_date_range(self, client, temp_db_path):
         """Get health data with date_start and date_end filters correctly."""
