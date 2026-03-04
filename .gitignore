@@ -74,7 +74,7 @@ google_application_credentials.json
 *.key
 .env
 .env.local
-secrets.py
+secrets/
 
 # Media files
 *.mp4
@@ -92,3 +92,4 @@ static/*.html
 # Local development
 .local/
 .ipython/
+.cursor/
