@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Compare periods – Health</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <a href="/" class="app-title-link">Health</a>
+                </h1>
+                <nav class="header-nav" aria-label="Main">
+                    <a href="/" class="header-nav-link">Dashboard</a>
+                    <a href="/compare" class="header-nav-link header-nav-link--active">Compare</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="compare-main">
+            <section class="compare-controls-card">
+                <div class="compare-controls-inline">
+                    <h2 class="section-title compare-controls-title">Compare periods</h2>
+                    <label for="start-a" class="compare-inline-label">A start</label>
+                    <input type="date" id="start-a" class="compare-date-input" aria-label="Period A start date">
+                    <label for="end-a" class="compare-inline-label">A end</label>
+                    <input type="date" id="end-a" class="compare-date-input" aria-label="Period A end date">
+                    <label for="start-b" class="compare-inline-label">B start</label>
+                    <input type="date" id="start-b" class="compare-date-input" aria-label="Period B start date">
+                    <label for="end-b" class="compare-inline-label">B end</label>
+                    <input type="date" id="end-b" class="compare-date-input" aria-label="Period B end date">
+                    <button type="button" class="compare-btn" id="btn-compare">Compare</button>
+                </div>
+                <div id="compare-error" class="compare-error hidden" role="alert"></div>
+                <div id="compare-loading" class="compare-loading hidden">Loading…</div>
+            </section>
+
+            <div id="compare-results" class="compare-results hidden" aria-live="polite">
+                <div class="compare-metric-select-row">
+                    <label for="compare-metric-select" class="compare-metric-label">Metric</label>
+                    <select id="compare-metric-select" class="compare-metric-select" aria-label="Select metric to display">
+                        <option value="steps">Steps</option>
+                        <option value="kcals">Calories</option>
+                        <option value="km">Distance</option>
+                        <option value="flights">Flights</option>
+                        <option value="weight">Weight</option>
+                    </select>
+                </div>
+                <div class="compare-cards-row">
+                    <section class="compare-period-card" aria-labelledby="period-a-title">
+                        <h3 class="compare-period-card-title" id="period-a-title">Period A</h3>
+                        <div class="compare-period-stats">
+                            <div class="compare-stat-row">
+                                <span class="compare-stat-label">Days</span>
+                                <span class="compare-stat-value" id="stat-a-days">--</span>
+                            </div>
+                            <div class="compare-stat-row compare-stat-subheader"><span class="compare-stat-label" id="stat-a-metric-name">Steps</span></div>
+                            <div class="compare-stat-row" id="stat-a-total-row"><span class="compare-stat-label">Total</span><span class="compare-stat-value" id="stat-a-total">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Min</span><span class="compare-stat-value" id="stat-a-min">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Max</span><span class="compare-stat-value" id="stat-a-max">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Avg</span><span class="compare-stat-value" id="stat-a-avg">--</span></div>
+                        </div>
+                    </section>
+                    <section class="compare-period-card" aria-labelledby="period-b-title">
+                        <h3 class="compare-period-card-title" id="period-b-title">Period B</h3>
+                        <div class="compare-period-stats">
+                            <div class="compare-stat-row">
+                                <span class="compare-stat-label">Days</span>
+                                <span class="compare-stat-value" id="stat-b-days">--</span>
+                            </div>
+                            <div class="compare-stat-row compare-stat-subheader"><span class="compare-stat-label" id="stat-b-metric-name">Steps</span></div>
+                            <div class="compare-stat-row" id="stat-b-total-row"><span class="compare-stat-label">Total</span><span class="compare-stat-value" id="stat-b-total">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Min</span><span class="compare-stat-value" id="stat-b-min">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Max</span><span class="compare-stat-value" id="stat-b-max">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Avg</span><span class="compare-stat-value" id="stat-b-avg">--</span></div>
+                        </div>
+                    </section>
+                    <section class="compare-diff-card" aria-labelledby="diff-title">
+                        <h3 class="compare-diff-title" id="diff-title">
+                            <span id="diff-arrow" class="compare-diff-arrow" aria-hidden="true"></span>
+                            Difference (B − A)
+                        </h3>
+                        <div class="compare-diff-stats" id="compare-diff-stats">
+                            <div class="compare-stat-row compare-stat-subheader"><span class="compare-stat-label" id="diff-metric-name">Steps</span></div>
+                            <div class="compare-stat-row" id="diff-total-row"><span class="compare-stat-label">Total</span><span class="compare-stat-value compare-diff-value" id="diff-total">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Min</span><span class="compare-stat-value compare-diff-value" id="diff-min">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Max</span><span class="compare-stat-value compare-diff-value" id="diff-max">--</span></div>
+                            <div class="compare-stat-row"><span class="compare-stat-label">Avg</span><span class="compare-stat-value compare-diff-value" id="diff-avg">--</span></div>
+                        </div>
+                    </section>
+                </div>
+                <section class="compare-chart-section" aria-labelledby="compare-chart-title">
+                    <div class="compare-chart-header">
+                        <h3 class="compare-chart-title" id="compare-chart-title">Day-by-day comparison</h3>
+                        <div class="compare-chart-toggles" role="group" aria-label="Toggle metrics">
+                            <button type="button" class="compare-chart-toggle-btn active" data-metric="steps">Steps</button>
+                            <button type="button" class="compare-chart-toggle-btn active" data-metric="kcals">Calories</button>
+                            <button type="button" class="compare-chart-toggle-btn active" data-metric="km">Distance</button>
+                            <button type="button" class="compare-chart-toggle-btn active" data-metric="flights">Flights</button>
+                        </div>
+                    </div>
+                    <div class="compare-chart-line-key" aria-label="Line style by period">
+                        <span class="compare-line-key-item"><span class="compare-line-key-sample compare-line-key-solid" aria-hidden="true"></span> Period A</span>
+                        <span class="compare-line-key-item"><span class="compare-line-key-sample compare-line-key-dashed" aria-hidden="true"></span> Period B</span>
+                    </div>
+                    <div class="compare-chart-container">
+                        <canvas id="compareChart"></canvas>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+    <script src="/static/js/compare.js"></script>
+</body>
+</html>

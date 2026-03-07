@@ -1171,4 +1171,320 @@ button:focus:not(:focus-visible) {
     outline: none;
 }
 
+/* ---------- Compare Page ---------- */
+.hidden {
+    display: none !important;
+}
+
+.app-title-link {
+    color: var(--color-text-primary);
+    text-decoration: none;
+}
+
+.app-title-link:hover {
+    color: var(--color-text-secondary);
+}
+
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.header-nav-link {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-sm);
+}
+
+.header-nav-link:hover {
+    color: var(--color-text-primary);
+    background: var(--color-surface-elevated);
+}
+
+.header-nav-link--active {
+    color: var(--color-steps);
+}
+
+.compare-main {
+    padding: 0 var(--space-md) var(--space-xl);
+}
+
+.compare-controls-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.compare-controls-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.compare-controls-title {
+    margin-bottom: 0;
+    margin-right: var(--space-md);
+}
+
+.compare-inline-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    white-space: nowrap;
+}
+
+.compare-date-input {
+    font-size: var(--font-size-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+}
+
+.compare-date-input:focus {
+    border-color: var(--color-steps);
+    outline: none;
+}
+
+.compare-btn {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    padding: var(--space-sm) var(--space-lg);
+    background: var(--color-steps);
+    color: var(--color-bg);
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+.compare-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.compare-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.compare-btn.loading {
+    opacity: 0.7;
+}
+
+.compare-error {
+    font-size: var(--font-size-sm);
+    color: #ff6b6b;
+    margin-top: var(--space-md);
+}
+
+.compare-loading {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+    margin-top: var(--space-md);
+}
+
+.compare-results {
+    margin-top: var(--space-lg);
+}
+
+.compare-metric-select-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.compare-metric-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+}
+
+.compare-metric-select {
+    font-size: var(--font-size-sm);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-primary);
+}
+
+.compare-metric-select:focus {
+    border-color: var(--color-steps);
+    outline: none;
+}
+
+.compare-cards-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+    .compare-cards-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.compare-period-card,
+.compare-diff-card {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+}
+
+.compare-period-card-title,
+.compare-diff-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    margin-bottom: var(--space-sm);
+    color: var(--color-text-primary);
+}
+
+.compare-period-stats,
+.compare-diff-stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.compare-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.compare-stat-subheader {
+    margin-top: var(--space-xs);
+}
+.compare-stat-subheader:first-child {
+    margin-top: 0;
+}
+.compare-stat-subheader .compare-stat-label {
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.compare-stat-label {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.compare-stat-value {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.compare-diff-title {
+    font-size: var(--font-size-sm);
+}
+
+.compare-diff-arrow {
+    margin-right: var(--space-xs);
+}
+
+.compare-diff-value.compare-diff-less {
+    color: #FF3B30;
+}
+
+.compare-diff-value.compare-diff-more {
+    color: #34C759;
+}
+
+.compare-diff-arrow-less {
+    color: #FF3B30;
+}
+
+.compare-diff-arrow-more {
+    color: #34C759;
+}
+
+.compare-chart-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-md);
+    padding: var(--space-lg);
+}
+
+.compare-chart-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+}
+
+.compare-chart-title {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text-primary);
+}
+
+.compare-chart-toggles {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+}
+
+.compare-chart-toggle-btn {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.compare-chart-toggle-btn:hover {
+    color: var(--color-text-primary);
+    border-color: var(--color-text-tertiary);
+}
+
+.compare-chart-toggle-btn.active {
+    background: var(--color-steps);
+    border-color: var(--color-steps);
+    color: var(--color-bg);
+}
+
+.compare-chart-line-key {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-sm);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+}
+
+.compare-line-key-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+}
+
+.compare-line-key-sample {
+    display: inline-block;
+    width: 24px;
+    height: 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.7);
+}
+
+.compare-line-key-dashed {
+    border-bottom-style: dashed;
+}
+
+.compare-chart-container {
+    position: relative;
+    height: 280px;
+}
+
 

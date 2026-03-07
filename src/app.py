@@ -67,6 +67,12 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/compare", methods=["GET"])
+def compare():
+    """Serve the period comparison page."""
+    return render_template("compare.html")
+
+
 @app.route("/status", methods=["GET"])
 def status():
     """Health check endpoint."""
@@ -174,8 +180,5 @@ def dump():
 
 
 def main() -> None:
+    logging.info(f"Starting iOS health app on http://localhost:{FLASK_PORT}")
     app.run(debug=True, host="0.0.0.0", port=FLASK_PORT)
-
-
-if __name__ == "__main__":
-    main()

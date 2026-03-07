@@ -74,7 +74,7 @@ google_application_credentials.json
 *.key
 .env
 .env.local
-secrets/
+src/secrets.py
 
 # Media files
 *.mp4
