@@ -1,4 +1,5 @@
 import logging
+import os
 from datetime import datetime
 from datetime import timedelta
 
@@ -6,8 +7,6 @@ import requests
 
 from src.health_goals import get_goals
 from src.ios_health_dump import get_all_health_data
-from src.secrets import TELEGRAM_CHAT_ID
-from src.secrets import TELEGRAM_TOKEN
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -17,8 +16,18 @@ def _goal_reached(percent: float) -> str:
     return "✅" if percent >= 1 else "❌"
 
 
+def _get_required_env(name: str) -> str:
+    value = os.environ.get(name)
+    if not value:
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+
 def send_summary_message_to_telegram() -> None:
     """Fetches health stats/goals from the previous day and sends via telegram."""
+    telegram_token = _get_required_env("TELEGRAM_TOKEN")
+    telegram_chat_id = _get_required_env("TELEGRAM_CHAT_ID")
+
     start_date = (datetime.now().date() - timedelta(days=365)).isoformat()
     end_date = (datetime.now().date() - timedelta(days=1)).isoformat()
     health_stats = get_all_health_data(date_start=start_date, date_end=end_date)
@@ -57,8 +66,8 @@ def send_summary_message_to_telegram() -> None:
     )
     message += f"\n{_goal_reached(flights_percent)} Flights: {flights_percent:.0%} - {yesterday_stats['flights_climbed']}/{avg_stats['flights_climbed']}"
     message += f"\nWeight: {latest_weight}"
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    payload = {"chat_id": TELEGRAM_CHAT_ID, "text": message}
+    url = f"https://api.telegram.org/bot{telegram_token}/sendMessage"
+    payload = {"chat_id": telegram_chat_id, "text": message}
 
     try:
         requests.post(url, json=payload, timeout=10)

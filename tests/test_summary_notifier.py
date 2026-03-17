@@ -13,8 +13,11 @@ from src.summary_notifier import send_summary_message_to_telegram
 @patch("src.summary_notifier.requests.post")
 @patch("src.summary_notifier.get_goals")
 @patch("src.summary_notifier.get_all_health_data")
-def test_send_summary_posts_to_telegram(mock_get_data, mock_get_goals, mock_post):
+def test_send_summary_posts_to_telegram(mock_get_data, mock_get_goals, mock_post, monkeypatch):
     """send_summary_message_to_telegram fetches data, builds message, posts to Telegram."""
+    monkeypatch.setenv("TELEGRAM_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+
     yesterday = (datetime.now().date() - timedelta(days=1)).isoformat()
     mock_get_data.return_value = [
         {
@@ -39,8 +42,11 @@ def test_send_summary_posts_to_telegram(mock_get_data, mock_get_goals, mock_post
 
 
 @patch("src.summary_notifier.get_all_health_data")
-def test_send_summary_raises_when_no_data(mock_get_data):
+def test_send_summary_raises_when_no_data(mock_get_data, monkeypatch):
     """send_summary_message_to_telegram raises RuntimeError when no health stats."""
+    monkeypatch.setenv("TELEGRAM_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+
     mock_get_data.return_value = []
 
     with pytest.raises(RuntimeError, match="No health stats found"):
@@ -50,8 +56,11 @@ def test_send_summary_raises_when_no_data(mock_get_data):
 @patch("src.summary_notifier.requests.post")
 @patch("src.summary_notifier.get_goals")
 @patch("src.summary_notifier.get_all_health_data")
-def test_send_summary_handles_request_failure(mock_get_data, mock_get_goals, mock_post):
+def test_send_summary_handles_request_failure(mock_get_data, mock_get_goals, mock_post, monkeypatch):
     """send_summary_message_to_telegram logs error on RequestException, does not raise."""
+    monkeypatch.setenv("TELEGRAM_TOKEN", "test-token")
+    monkeypatch.setenv("TELEGRAM_CHAT_ID", "12345")
+
     yesterday = (datetime.now().date() - timedelta(days=1)).isoformat()
     mock_get_data.return_value = [
         {
