@@ -141,7 +141,7 @@ def update_health_data(date_str: str):
         recorded_at=recorded_at,
     )
     upsert_health_dump(health_dump)
-    logger.info(f"✏️ Updated health record for {date_str}")
+    logger.debug(f"✏️ Updated health record for {date_str}")
     return jsonify(health_dump.to_dict()), 200
 
 
@@ -174,7 +174,7 @@ def dump():
         recorded_at=recorded_at,
     )
     row_count = upsert_health_dump(health_dump)
-    logger.info(f"📲 Saved health dump for iOS app: {health_dump} (rows: {row_count:,})")
+    logger.debug(f"📲 Saved health dump for iOS app: {health_dump} (rows: {row_count:,})")
     data = get_all_health_data()
     return jsonify({"status": "success", "data": health_dump.to_dict(), "row_count": row_count}), 200
 
