@@ -45,7 +45,7 @@ def upsert_health_dump(health_dump: HealthDump) -> int:
                         (health_dump.weight, health_dump.date),
                     )
                 else:
-                    logger.info(f"⏭️ Skipping older health dump for {health_dump.date}")
+                    logger.debug(f"⏭️ Skipping older health dump for {health_dump.date}")
                 cursor.execute(f"SELECT COUNT(*) FROM {TABLE_NAME}")
                 total_rows = cursor.fetchone()[0]
                 return total_rows

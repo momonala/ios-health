@@ -71,7 +71,7 @@ def send_summary_message_to_telegram() -> None:
 
     try:
         requests.post(url, json=payload, timeout=10)
-        logger.info(f"{message}. Telegram alert sent.")
+        logger.debug(f"{message}. Telegram alert sent.")
     except requests.RequestException as e:
         logger.error("Failed to send Telegram message: %s", e)
 

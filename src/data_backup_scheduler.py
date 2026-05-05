@@ -34,7 +34,7 @@ def force_push_to_git(command: list[str], msg: str) -> None:
 def commit_if_changed() -> None:
     diff = run_command(["git", "diff", file_to_commit], check=False)
     if not diff:
-        logger.info(f"⏭️ [{datetime.now()}] No changes. Skipping commit.")
+        logger.debug(f"⏭️ [{datetime.now()}] No changes. Skipping commit.")
         return
 
     run_command(["git", "add", file_to_commit])
