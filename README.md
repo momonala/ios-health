@@ -5,14 +5,6 @@
 
 Backend service and web dashboard for receiving, storing, and visualizing daily health metrics (steps, calories, distance, flights climbed, weight) from iOS via Shortcuts.
 
-## Tech Stack
-
-- Python 3.12 / Flask backend
-- SQLite for health data storage
-- Modern web frontend (HTML5, CSS3, vanilla JavaScript)
-- Chart.js for time series visualization
-- Cloudflared for secure tunneling
-
 ## Architecture
 
 ```mermaid
@@ -64,9 +56,19 @@ uv sync
 uv run app
 ```
 
-Server runs at http://localhost:5009
-
 Open http://localhost:5009 in your browser to view the dashboard.
+
+## Environment Variables
+
+For Telegram summary notifications, create a local `.env` file (do not commit it) using `.env.example` as a template:
+
+```bash
+cp .env.example .env
+```
+
+Required values:
+- `TELEGRAM_TOKEN`
+- `TELEGRAM_CHAT_ID`
 
 ### Data Backup Scheduler
 
@@ -77,42 +79,6 @@ uv run python -m src.data_backup_scheduler
 
 The scheduler checks for database changes every hour and commits them to git. If a commit already exists for the current day, it will amend that commit instead of creating a new one, keeping the git history clean with one commit per day.
 
-## Testing
-
-Run all tests with coverage (configured in pytest.ini):
-```bash
-uv run pytest
-```
-
-Run a specific test file:
-```bash
-uv run pytest tests/test_datamodels.py
-```
-
-Generate HTML coverage report:
-```bash
-uv run pytest --cov-report=html
-```
-
-Note: Test files are excluded from coverage reports.
-
-## Pre-commit Hook
-
-A pre-commit hook is installed that automatically runs:
-1. Tests (`uv run pytest`)
-2. Code formatting (`uv run black .`)
-3. Linting (`uv run ruff check . --fix`)
-
-The hook is installed at `.git/hooks/pre-commit`. To reinstall it:
-```bash
-cp pre-commit.sh .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
-
-To skip the hook for a single commit:
-```bash
-git commit --no-verify
-```
 
 ## Project Structure
 
@@ -248,29 +214,6 @@ Response:
 }
 ```
 
-## Dashboard Features
-
-The web dashboard provides an iOS Health App-inspired interface with:
-
-- **Today's Summary**: Large metric cards showing steps, calories, distance, and flights climbed with animated progress rings
-- **Optimized Loading**: Parallel API calls with SQL-level date filtering - today's data loads instantly (single row query) while historical data loads separately
-- **Animated Rings**: Progress rings animate smoothly from 0% to target percentage on page load using requestAnimationFrame
-- **Statistics**: Grouped stats cards showing min, max, avg, and total for each metric (steps, calories, distance, flights, weight) with period filtering
-- **Time Series Charts**: Interactive line charts for all metrics using Chart.js with weight showing absolute values connected across gaps
-- **Recent Activity**: Sortable table with compact date formatting and all activity data
-- **Weight Tracking**: Weight measurements displayed in stats and charts, with smart merging from CSV imports
-- **Responsive Design**: Works on mobile and desktop with mobile-optimized layouts
-- **Dark Theme**: iOS-inspired dark color scheme
-
-## Key Concepts
-
-| Concept | Description |
-|---------|-------------|
-| **Upsert logic** | Only keeps the latest entry per day; older duplicates are skipped. Weight from older CSV data is merged into newer records if missing |
-| **Timezone** | All times normalized to Europe/Berlin |
-| **Auto-commit** | Scheduler commits DB changes to git hourly; amends same-day commits |
-| **Goals** | Default goals: 10,000 steps, 500 kcal, 8 km, 50 flights climbed (configurable in frontend) |
-| **Weight tracking** | Weight is optional and may be sparse (measured infrequently). Chart connects all available weight points across gaps |
 
 ## Data Models
 

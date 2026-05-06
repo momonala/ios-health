@@ -4,6 +4,7 @@ from datetime import datetime
 from datetime import timedelta
 
 import requests
+from dotenv import load_dotenv
 
 from src.health_goals import get_goals
 from src.ios_health_dump import get_all_health_data
@@ -25,6 +26,7 @@ def _get_required_env(name: str) -> str:
 
 def send_summary_message_to_telegram() -> None:
     """Fetches health stats/goals from the previous day and sends via telegram."""
+    load_dotenv()
     telegram_token = _get_required_env("TELEGRAM_TOKEN")
     telegram_chat_id = _get_required_env("TELEGRAM_CHAT_ID")
 
